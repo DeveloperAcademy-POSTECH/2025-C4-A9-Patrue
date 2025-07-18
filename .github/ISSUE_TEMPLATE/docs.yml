@@ -1,12 +1,13 @@
-name: 📄 문서 작업
+name: 📋 문서 작업
 description: 문서 생성 또는 갱신이 필요할 때 사용합니다.
-title: "📄 Docs: "
+title: "📋 Docs: "
 labels: ["Docs"]
 body:
   - type: textarea
     id: doc-target
     attributes:
       label: 📌 문서 작업 대상
+      description: 어떤 문서를 작업할 것인지 기입해주세요.
       placeholder: ex) README.md, API 명세서
     validations:
       required: true
@@ -15,6 +16,7 @@ body:
     id: task
     attributes:
       label: 🛠 작업 내용
+      description: 어떤 작업이 필요한지 기입해주세요.
       value: "- [ ] "
       placeholder: |
         - [ ] 기존 구조 설명 보완

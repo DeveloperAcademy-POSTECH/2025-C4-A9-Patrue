@@ -7,6 +7,7 @@ body:
     id: refactor-reason
     attributes:
       label: 🤔 리팩토링 이유
+      description: 리팩토링의 목적과 핵심 내용을 설명해주세요.
       placeholder: ex) 뷰모델에서 네트워크 로직이 분리되지 않음
     validations:
       required: true
@@ -15,6 +16,7 @@ body:
     id: scope
     attributes:
       label: 📦 리팩토링 범위
+      description: 리팩토링의 범위를 설명해주세요.
       placeholder: ex) SearchViewModel, SearchUseCase
     validations:
       required: true
@@ -23,6 +25,7 @@ body:
     id: effect
     attributes:
       label: 💥 기대 효과
+      description: 해당 작업으로 인해 기대되는 효과를 설명해주세요.
       placeholder: ex) 역할 분리로 테스트 용이성 증가
     validations:
       required: false
