@@ -27,9 +27,9 @@ EOF
   exit 1
 fi
 
-# ✅ 제목에서 타입을 제외한 설명의 길이를 42자 이하로 강제
+# ✅ 제목에서 타입을 포함한 설명의 길이를 42자 이하로 강제
 TITLE_LEN=$(printf '%s' "$TITLE" | wc -m)
-if [ "$TITLE_LEN" -gt 30 ]; then
+if [ "$TITLE_LEN" -gt 42 ]; then
   echo "❌ 제목 길이 오류"
   echo "👉 커밋 제목의 길이가 현재 ${TITLE_LEN}자입니다."
   echo "👉 커밋 제목이 42자를 초과하지 않도록 수정해주세요."
