@@ -45,6 +45,7 @@
 				711378BE2E2D093800DB6496 /* Run SwiftLint */,
 				71D1B2C72E2AC84800BA3373 /* Run SwiftFormat */,
 				71D1B1C02E2A977300BA3373 /* Sources */,
+				71A77D032E324A910035B9ED /* Resources */,
 			);
 			buildRules = (
 			);
@@ -93,6 +94,16 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		71A77D032E324A910035B9ED /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		711378BE2E2D093800DB6496 /* Run SwiftLint */ = {
