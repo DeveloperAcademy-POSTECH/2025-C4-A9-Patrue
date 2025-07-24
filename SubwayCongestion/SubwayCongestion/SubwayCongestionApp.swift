@@ -12,6 +12,7 @@ struct SubwayCongestionApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .modelContainer(for: [MockData.self])
         }
     }
 }
