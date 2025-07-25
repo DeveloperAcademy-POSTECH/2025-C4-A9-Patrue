@@ -12,7 +12,6 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.modelContext) private var context
-//    @Query var predictions: [Prediction]
 
     @Query(sort: [
         SortDescriptor(\Prediction.month),
@@ -24,7 +23,6 @@ struct ContentView: View {
     @State private var currentDate: Date = .now
     @State private var selectedDate: Date = .now
     @State private var showGuideSheet: Bool = false
-//    @State private var filteredPredictions: [Prediction] = []
 
     var filteredPredictions: [Prediction] {
         let calendar = Calendar.current
@@ -42,23 +40,14 @@ struct ContentView: View {
         let selectedDay = calendar.component(.day, from: selectedDate)
         let selectedTimeline = calendar.component(.hour, from: selectedDate)
 
-        print("\(selectedMonth)-\(selectedDay)-\(selectedTimeline)")
-
         return predictions.filter { item in
-            item.month == 8 && item.day == 1 && item.timeline == 5
-//            item.month == selectedMonth && item.day == selectedDay && item.timeline + 5 == selectedTimeline
+//            item.month == 8 && item.day == 1 && item.timeline == 5
+            item.month == selectedMonth && item.day == selectedDay && item.timeline == selectedTimeline
         }[0]
     }
 
-//    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-//    let allTimelines = Array(0 ... 23)
-
     var body: some View {
         NavigationStack {
-            NavigationLink("Chart") {
-                ChartTestView(data: filteredPredictions)
-            }
-
             VStack {
                 VStack(spacing: 16) {
                     DateSelector(currentDate: $currentDate, selectedDate: $selectedDate)
@@ -74,19 +63,13 @@ struct ContentView: View {
                             .font(.title)
                             .fontWeight(.semibold)
 
+                        Text("currentDate in ContentView:\n\(currentDate)")
+                        Text("selectedDate in ContentView:\n\(selectedDate)")
                         Text("\(currentDatePrediction.timeline)시간대")
                         Text("승객수 \(currentDatePrediction.passengers)")
                     }
                     // 2. 혼잡도 차트
-                    Chart(filteredPredictions) { prediction in
-                        LineMark(
-                            x: .value("시간", String(prediction.timeline) + "시간대"),
-                            y: .value("승객 수", prediction.passengers)
-                        )
-                        .foregroundStyle(Color.green)
-                    }
-                    .padding(.all)
-                    Spacer()
+                    ChartTestView(data: filteredPredictions, selectedDate: $selectedDate)
                 }
             }
             .toolbar {
@@ -107,9 +90,6 @@ struct ContentView: View {
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showGuideSheet) {
                 CongestionGuideSheet()
-            }
-            .onAppear {
-                print(filteredPredictions)
             }
         }
     }
