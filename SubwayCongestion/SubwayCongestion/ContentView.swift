@@ -13,166 +13,134 @@ struct ContentView: View {
     @Environment(\.modelContext) private var context
     let subwayModel = try? FinalModel(configuration: .init())
     
-    @State private var outputArr: [Double] = []
+    @State private var predicts: [PredictModel] = []
     
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-            
-            if !outputArr.isEmpty{
-                ForEach(outputArr, id: \.self){ output in
-                    Text("인원수: \(output)")
+        ScrollView{
+            VStack {
+                
+                let data = predicts
+                    .filter { $0.year == 2025 && $0.month == 7 && $0.day == 30 }
+                    .sorted(by: { $0.timeline < $1.timeline })
+
+                
+                if !data.isEmpty {
+                    GraphView(predicts: data)
                 }
-            } else{
-                Text("출력값 없음")
-            }
             
-            Button("Generate Sample Data") {
-                generateSampleData(context: context)
             }
-        }
-        .padding()
-        .onAppear{
-            predict()
+            .padding()
+            .onAppear{
+                let savedData = fetchPredictData()
+                if savedData.isEmpty {
+                    loadCSVAndPredict()
+                } else {//swiftData에 저장된 경우 불러오기
+                    self.predicts = savedData.map {
+                        PredictModel(year: $0.year, month: $0.month, day: $0.day, timeline: $0.timeline + 5, peopleCount: $0.peopleCount)
+                    }.sorted { $0.day < $1.day }
+                    print("스위프트 데이터에서 불러오기")
+                }
+            }
         }
     }
     
+    func fetchPredictData() -> [PredictData] {
+        let fetchDescriptor = FetchDescriptor<PredictData>()
+        let data = (try? context.fetch(fetchDescriptor)) ?? []
+        return data
+    }
 
-    func predict() {
-        do {
-            let year: Int64 = 2025// TODO: 모델에 2025년 데이터 어떻게 넣어줄 것인지
-            let month: Int64 = 2
-            let day: Int64 = 1
-            
-            guard let weekday = weekdayFrom(year: year, month: month, day: day) else {
-                print("Invalid date")
+    func loadCSVAndPredict() {
+            guard let path = Bundle.main.path(forResource: "exampleData", ofType: "csv") else {
+                print("CSV 파일을 찾을 수 없습니다.")
                 return
             }
-
-            for time in Timeline.allCases {
-                let fetchDescriptor = FetchDescriptor<MockData>(
-                    predicate: #Predicate {
-                        $0.year == year &&
-                        $0.month == month &&
-                        $0.day == day
-                    }
-                )
-                
-                guard let mockData = try? context.fetch(fetchDescriptor).first(where: {
-                    $0.timeline == time.rawValue
-                }) else {
-                    print("MockData 없음: \(year)-\(month)-\(day) \(time.rawValue)")
-                    continue
-                }
-                print("MockData : \(mockData.timeline)")
-                
-                let input = createModelInput(
-                    year: year,
-                    month: month,
-                    day: day,
-                    weekday: weekday,
-                    time: time,
-                    mockData: mockData
-                )
-                
-                let prediction = try subwayModel?.prediction(input: input)
-                self.outputArr.append(prediction?.Passengers ?? 0.0)
-                
-                print(prediction ?? "예측 실패")
-            }
             
-        } catch {
-            fatalError("Unexpected runtime error: \(error).")
-        }
-    }
-    
-    func weekdayFrom(year: Int64, month: Int64, day: Int64) -> Int? {
-        var components = DateComponents()
-        components.year = Int(year)
-        components.month = Int(month)
-        components.day = Int(day)
-        let calendar = Calendar.current
-        var weekday: Int? = nil
-        
-        if let date = calendar.date(from: components) {
-            weekday = calendar.component(.weekday, from: date)
-        } else {
-            print("Invalid date")
-        }
-        return weekday
-    }
-    
-    func createModelInput(year: Int64, month: Int64, day: Int64, weekday: Int, time: Timeline, mockData: MockData) -> FinalModelInput {
-        let isHoliday = mockData.isHoliday == 1
-        let isWeekday = weekday >= 1 && weekday <= 5//일~목
+            do {
+                let csvString = try String(contentsOfFile: path, encoding: .utf8)
+                let lines = csvString.components(separatedBy: "\n").filter { !$0.isEmpty }
+                
+                guard lines.count > 1 else { return } // 데이터 없음
+                
+                let rows = lines.dropFirst() // 헤더 제외
+                
+                for row in rows {
+                    let columns = row.components(separatedBy: ",")
+                    guard columns.count == 19 else {
+                        print("잘못된 컬럼 수: \(columns.count)")
+                        continue
+                    }
+                    
+                    let cleanedColumns = columns.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
 
-        let isLotteWorldOpen: Int64 = isWeekday && (10...21).contains(time.hour) ? 1 : 0//오전 10시 ~ 오후 9시
-        let isLotteWorldMallOpen: Int64 = (weekday == 6 || weekday == 7 || isHoliday) && (10...22).contains(time.hour) ? 1 : 0 //오전 10시 ~ 오후 10시
-
-        let morningCommute: Int64 = [.hour7, .hour8, .hour9].contains(time) ? 1 : 0
-        let eveningCommute: Int64 = [.hour12, .hour13, .hour14].contains(time) ? 1 : 0
-        let lateNight: Int64 = [.hour18, .hour19, .before6].contains(time) ? 1 : 0
-
-        // 요일 인코딩
-        let dayMonday: Int64 = weekday == 2 ? 1 : 0
-        let dayTuesday: Int64 = weekday == 3 ? 1 : 0
-        let dayWednesday: Int64 = weekday == 4 ? 1 : 0
-        let dayThursday: Int64 = weekday == 5 ? 1 : 0
-        let dayFriday: Int64 = weekday == 6 ? 1 : 0
-        let daySaturday: Int64 = weekday == 7 ? 1 : 0
-        let daySundayOrHoliday: Int64 = (weekday == 1 || isHoliday) ? 1 : 0
-
-        return FinalModelInput(
-            Year: year,
-            Month: month,
-            Day: day,
-            Timeline: time.rawValue,
-            Morning_Commute: morningCommute,
-            Evening_Commute: eveningCommute,
-            Late_Night: lateNight,
-            Annual_seasonal_outiler: mockData.isAnnualOutlier,
-            Lotte_World: isLotteWorldOpen,
-            Lotte_World_Mall: isLotteWorldMallOpen,
-            Day_Friday: dayFriday,
-            Day_Thursday: dayThursday,
-            Day_Wednesday: dayWednesday,
-            Day_Monday: dayMonday,
-            Day_Sunday: daySundayOrHoliday,
-            Day_Saturday: daySaturday,
-            Day_Tuesday: dayTuesday,
-            Day_Holiday: isHoliday ? 1 : 0
-        )
-    }
-    
-    
-    func generateSampleData(context: ModelContext) {
-        for dayOffset in 1..<8 {
-            for hour in 0..<20 {
-                let isHoliday = (dayOffset == 1) ? 1 : 0 // 예시로 1월 1일만 공휴일 처리
-                let isOutlier = Int.random(in: 0...1) // 랜덤 outlier 값
-
-                let data = MockData(
-                    year: Int64(2025),
-                    month: Int64(2),
-                    day: Int64(dayOffset),
-                    timeline: Int64(hour),
-                    isAnnualOutlier: Int64(isOutlier),
-                    isHoliday: Int64(isHoliday)
-                )
-                context.insert(data)
+                    guard let year = Int64(cleanedColumns[0]),
+                          let month = Int64(cleanedColumns[1]),
+                          let day = Int64(cleanedColumns[2]),
+                          let timeline = Int64(cleanedColumns[3]),
+                          let morningCommute = Int64(cleanedColumns[5]),
+                          let eveningCommute = Int64(cleanedColumns[6]),
+                          let lateNight = Int64(cleanedColumns[7]),
+                          let annualOutlier = Int64(cleanedColumns[8]),
+                          let lotteWorld = Int64(cleanedColumns[9]),
+                          let lotteWorldMall = Int64(cleanedColumns[10]),
+                          let dayFriday = Int64(cleanedColumns[11]),
+                          let dayThursday = Int64(cleanedColumns[12]),
+                          let dayWednesday = Int64(cleanedColumns[13]),
+                          let dayMonday = Int64(cleanedColumns[14]),
+                          let daySunday = Int64(cleanedColumns[15]),
+                          let daySaturday = Int64(cleanedColumns[16]),
+                          let dayTuesday = Int64(cleanedColumns[17]),
+                          let dayHoliday = Int64(cleanedColumns[18]) else {
+                        print("숫자 파싱 실패: \(cleanedColumns)")
+                        continue
+                    }
+                    
+                    let input = FinalModelInput(
+                        Year: year,
+                        Month: month,
+                        Day: day,
+                        Timeline: timeline,
+                        Morning_Commute: morningCommute,
+                        Evening_Commute: eveningCommute,
+                        Late_Night: lateNight,
+                        Annual_seasonal_outiler: annualOutlier,
+                        Lotte_World: lotteWorld,
+                        Lotte_World_Mall: lotteWorldMall,
+                        Day_Friday: dayFriday,
+                        Day_Thursday: dayThursday,
+                        Day_Wednesday: dayWednesday,
+                        Day_Monday: dayMonday,
+                        Day_Sunday: daySunday,
+                        Day_Saturday: daySaturday,
+                        Day_Tuesday: dayTuesday,
+                        Day_Holiday: dayHoliday
+                    )
+                    
+                    do {
+                        let prediction = try subwayModel?.prediction(input: input)
+                        var passengers = Int64(prediction?.Passengers ?? 0.0)
+                        
+                        if passengers < 0 {passengers = 0}//음수인 경우 0으로 처리
+                        
+                        predicts.append(PredictModel(year: year, month: month, day: day, timeline: timeline + 5, peopleCount: passengers))
+                        
+                        //swift 데이터에 저장
+                        let predictData = PredictData(year: year, month: month, day: day, timeline: timeline, peopleCount: passengers)
+                        context.insert(predictData)
+                        print("예측 결과 (\(year)-\(month)-\(day) 시간 \(timeline)): \(passengers)")
+                    } catch {
+                        print("예측 실패: \(error)")
+                    }
+                }
+                try? context.save()
+                print("swift 데이터에 저장 성공")
+            } catch {
+                print("CSV 로딩 실패: \(error)")
             }
         }
-
-        try? context.save()
-        
-        let data = try? context.fetch(FetchDescriptor<MockData>())
-        print("data: \(data)")
-    }
 }
 
 #Preview {
     ContentView()
 }
+
