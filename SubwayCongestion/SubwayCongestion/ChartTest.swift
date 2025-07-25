@@ -12,7 +12,7 @@ import SwiftUI
 struct ChartTestView: View {
     // [month, day, timeline]
     var data: [Prediction]
-    @State private var selectedDate: Date? = nil
+    @State private var selectedDate: Date = Date()//현재 날짜로 초기화
     @State private var passengers: Int? = nil
     @State private var xPosition: CGFloat? = nil
     
@@ -50,27 +50,20 @@ struct ChartTestView: View {
                     
                 }
                 
-                if let selectedDate = selectedDate {
-                    RuleMark(x: .value("현재 위치", selectedDate))
-                        .lineStyle(StrokeStyle(lineWidth: 2))
-                        .foregroundStyle(.black)
-                }else{
-//                    RuleMark(x: .value("현재 위치", ))
-//                        .lineStyle(StrokeStyle(lineWidth: 2))
-//                        .foregroundStyle(.black)
+                RuleMark(x: .value("현재 위치", selectedDate))
+                    .lineStyle(StrokeStyle(lineWidth: 2))
+                    .foregroundStyle(.black)
+
+                // 가장 첫 데이터의 날짜
+                if let firstDate = data.first?.asDate {
+                    RectangleMark(
+                        xStart: .value("시작", firstDate),
+                        xEnd: .value("선택된 시각", Date())
+                    )
+                    .foregroundStyle(.gray.opacity(0.2)) // 어두운 배경 효과
+                    .accessibilityHidden(true)
                 }
                 
-                if let selectedDate {
-                    // 가장 첫 데이터의 날짜
-                    if let firstDate = data.first?.asDate {
-                        RectangleMark(
-                            xStart: .value("시작", firstDate),
-                            xEnd: .value("선택된 시각", selectedDate)
-                        )
-                        .foregroundStyle(.gray.opacity(0.2)) // 어두운 배경 효과
-                        .accessibilityHidden(true)
-                    }
-                }
             }
             .chartYScale(range: .plotDimension(padding: 2))
             .chartYAxis {
@@ -86,42 +79,13 @@ struct ChartTestView: View {
                 }
             }
             .chartOverlay { proxy in
-                GeometryReader { geo in
-                    Rectangle()
-                        .fill(Color.clear)
-                        .contentShape(Rectangle())
-                        .gesture(
-                            DragGesture()
-                                .onChanged { value in
-                                    let originX = geo[proxy.plotAreaFrame].origin.x
-                                    let currentX = value.location.x - originX
-                                    
-                                    // 좌표를 Date로 변환
-                                    if let currentDate: Date = proxy.value(atX: currentX) {
-                                        let closest = data.min(by: {
-                                            abs($0.asDate.timeIntervalSince(currentDate)) < abs($1.asDate.timeIntervalSince(currentDate))
-                                        })
-                                        selectedDate = closest?.asDate
-                                        
-                                        if let selectedPrediction = data.first(where: { $0.asDate == selectedDate }) {
-                                            passengers = selectedPrediction.passengers
-                                        }
-                                        
-                                        if let selectedDate = selectedDate,
-                                           let xPos = proxy.position(forX: selectedDate) {
-                                            xPosition = xPos + originX // 전체 좌표계 기준 위치
-                                        }
-                                    }
-                                }
-                        )
-                }
+                overlayGesture(proxy: proxy)
             }
             .frame(height: 300)
         }
         .overlay(alignment: .topLeading) {
-            if let xPosition = xPosition,
-               let selected = selectedDate {
-                Text("\(timeFormatter(date: selected))\n혼잡")
+            if let xPosition = xPosition {
+                Text("\(timeFormatter(date: selectedDate))\n혼잡")
                     .font(.caption)
                     .background(Color.white)
                     .cornerRadius(4)
@@ -135,7 +99,37 @@ struct ChartTestView: View {
         }
     }
     
-    func descriptionForCongestion(_ passengers: Int) -> String {
+    private func overlayGesture(proxy: ChartProxy) -> some View {
+        GeometryReader { geo in
+            Rectangle()
+                .fill(Color.clear)
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            handleDrag(value: value, proxy: proxy, geo: geo)
+                        }
+                )
+        }
+    }
+    
+    private func handleDrag(value: DragGesture.Value, proxy: ChartProxy, geo: GeometryProxy) {
+        let originX = geo[proxy.plotAreaFrame].origin.x
+        let localX = value.location.x - originX
+        
+        guard let currentDate: Date = proxy.value(atX: localX) else { return }
+        
+        if let closest = data.min(by: { abs($0.asDate.timeIntervalSince(currentDate)) < abs($1.asDate.timeIntervalSince(currentDate)) }) {
+            selectedDate = closest.asDate
+            passengers = closest.passengers
+            
+            if let xPos = proxy.position(forX: closest.asDate) {
+                xPosition = xPos + originX
+            }
+        }
+    }
+    
+    private func descriptionForCongestion(_ passengers: Int) -> String {
         switch passengers {
         case 0..<3000: return ""
         case 3000..<6000: return "여유"
@@ -145,7 +139,7 @@ struct ChartTestView: View {
         }
     }
     
-    func timeFormatter(date: Date) -> String{
+    private func timeFormatter(date: Date) -> String{
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
         formatter.dateFormat = "a h:mm시"  // 오전/오후 h:mm시 형식

@@ -50,10 +50,6 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack {
-            NavigationLink("Chart") {
-                ChartTestView(data: filteredPredictions)
-            }
-
             VStack {
                 VStack(spacing: 16) {
                     DateSelector(currentDate: $currentDate, selectedDate: $selectedDate)
@@ -72,9 +68,10 @@ struct ContentView: View {
                         Text("\(currentDatePrediction.timeline)시간대")
                         Text("승객수 \(currentDatePrediction.passengers)")
                     }
+                    
+                    Spacer()
                     // 2. 혼잡도 차트
                     ChartTestView(data: filteredPredictions)
-                    Spacer()
                 }
             }
             .toolbar {
