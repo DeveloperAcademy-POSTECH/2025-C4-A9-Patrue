@@ -130,9 +130,3 @@ struct TopRightCurvedShape: Shape {
         return path
     }
 }
-
-// #Preview {
-//
-//    DateSelector(selectedDate: Date())
-// }
-//

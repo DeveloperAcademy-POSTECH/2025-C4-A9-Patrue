@@ -7,15 +7,24 @@
 
 import Charts
 import CoreML
+import SwiftData
 import SwiftUI
 
 struct ContentView: View {
-    let model = try? Basic(configuration: .init())
+    @Environment(\.modelContext) private var context
+//    @Query var predictions: [Prediction]
+
+    @Query(sort: [
+        SortDescriptor(\Prediction.month),
+        SortDescriptor(\Prediction.day),
+        SortDescriptor(\Prediction.timeline),
+    ])
+    var predictions: [Prediction]
 
     @State private var currentDate: Date = .now
     @State private var selectedDate: Date = .now
-    @State private var predictions: [Prediction] = []
     @State private var showGuideSheet: Bool = false
+//    @State private var filteredPredictions: [Prediction] = []
 
     var filteredPredictions: [Prediction] {
         let calendar = Calendar.current
@@ -27,11 +36,29 @@ struct ContentView: View {
         }
     }
 
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    let allTimelines = Array(0 ... 23)
+    var currentDatePrediction: Prediction {
+        let calendar = Calendar.current
+        let selectedMonth = calendar.component(.month, from: selectedDate)
+        let selectedDay = calendar.component(.day, from: selectedDate)
+        let selectedTimeline = calendar.component(.hour, from: selectedDate)
+
+        print("\(selectedMonth)-\(selectedDay)-\(selectedTimeline)")
+
+        return predictions.filter { item in
+            item.month == 8 && item.day == 1 && item.timeline == 5
+//            item.month == selectedMonth && item.day == selectedDay && item.timeline + 5 == selectedTimeline
+        }[0]
+    }
+
+//    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+//    let allTimelines = Array(0 ... 23)
 
     var body: some View {
         NavigationStack {
+            NavigationLink("Chart") {
+                ChartTestView(data: filteredPredictions)
+            }
+
             VStack {
                 VStack(spacing: 16) {
                     DateSelector(currentDate: $currentDate, selectedDate: $selectedDate)
@@ -46,14 +73,11 @@ struct ContentView: View {
                         Text(formattedHour(currentDate))
                             .font(.title)
                             .fontWeight(.semibold)
-                        Text("선택된 날짜 및 시간")
-                        Text("\(selectedDate)")
+
+                        Text("\(currentDatePrediction.timeline)시간대")
+                        Text("승객수 \(currentDatePrediction.passengers)")
                     }
                     // 2. 혼잡도 차트
-                    Text("선택한 날짜 혼잡도 정보들")
-                    List(filteredPredictions) { item in
-                        Text("Month: \(item.month),Day: \(item.day), Timeline: \(item.timeline), Passengers: \(item.passengers)")
-                    }
                     Chart(filteredPredictions) { prediction in
                         LineMark(
                             x: .value("시간", String(prediction.timeline) + "시간대"),
@@ -85,53 +109,8 @@ struct ContentView: View {
                 CongestionGuideSheet()
             }
             .onAppear {
-                loadCSVAndPredict()
+                print(filteredPredictions)
             }
-        }
-    }
-
-    func loadCSVAndPredict() {
-        guard let path = Bundle.main.path(forResource: "future_input", ofType: "csv") else {
-            print("CSV 파일을 찾을 수 없습니다.")
-            return
-        }
-
-        do {
-            let csvString = try String(contentsOfFile: path, encoding: .utf8)
-            let lines = csvString.components(separatedBy: .newlines).filter { !$0.isEmpty }
-            let rows = lines.dropFirst()
-            var tempResults: [Prediction] = []
-            for row in rows {
-                let columns = row.components(separatedBy: ",")
-                guard columns.count >= 4 else { continue }
-                if let month = Int(columns[1]),
-                   let day = Int(columns[2]),
-                   let timeline = Int(columns[3])
-                {
-                    do {
-                        let prediction = try model?.prediction(
-                            month: Int64(month),
-                            day: Int64(day),
-                            timeline: Int64(timeline),
-                            morning_commute: Int64(timeline) >= 3 && Int64(timeline) <= 5 ? 1 : 0,
-                            evening_commute: Int64(timeline) >= 15 && Int64(timeline) <= 7 ? 1 : 0,
-                            late_night: Int64(timeline) >= 18 ? 1 : 0
-                        )
-                        let passengers = Int((prediction?.passengers ?? 0).rounded())
-
-                        tempResults.append(
-                            Prediction(month: month, day: day, timeline: timeline, passengers: passengers)
-                        )
-                    } catch {
-                        print("예측 실패: \(error)")
-                    }
-                }
-            }
-            DispatchQueue.main.async {
-                predictions = tempResults
-            }
-        } catch {
-            print("CSV 로딩 실패: \(error)")
         }
     }
 }
@@ -148,14 +127,6 @@ func formattedHour(_ date: Date) -> String {
     formatter.locale = Locale(identifier: "ko_KR")
     formatter.dateFormat = "a h:00"
     return formatter.string(from: date)
-}
-
-struct Prediction: Identifiable, Hashable {
-    let id = UUID()
-    let month: Int
-    let day: Int
-    let timeline: Int
-    let passengers: Int
 }
 
 #Preview {
