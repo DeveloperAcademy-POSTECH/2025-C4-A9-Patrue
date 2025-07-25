@@ -1,0 +1,148 @@
+
+import Charts
+import SwiftUI
+
+struct ChartTestView: View {
+    // [month, day, timeline]
+    var data: [Prediction]
+    
+    @State private var selectedDate: Date? = nil //선택된 날짜
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            Chart {
+                ForEach(data, id: \.id) { dataPoint in
+                    //선 그래프
+                    LineMark(
+                        x: .value("Time of day", dataPoint.asDate),
+                        y: .value("Passengers", dataPoint.passengers)
+                    )
+                    .interpolationMethod(.linear)
+                    .foregroundStyle(.green)
+                    .lineStyle(StrokeStyle(lineWidth: 4))
+                    .alignsMarkStylesWithPlotArea()
+                    //외부 초록색 큰점
+                    PointMark(
+                        x: .value("Time of day", dataPoint.asDate),
+                        y: .value("Passengers", dataPoint.passengers)
+                    )
+                    .symbolSize(CGSize(width: 18, height: 18))
+                    .foregroundStyle(.green)
+                    .accessibilityHidden(true)
+                    //내부 흰색 점
+                    PointMark(
+                        x: .value("Time of day", dataPoint.asDate),
+                        y: .value("Passengers", dataPoint.passengers)
+                    )
+                    .symbolSize(CGSize(width: 8, height: 8))
+                    .foregroundStyle(.white)
+                    //                    .accessibilityLabel("Now")
+                }
+                // 선택된 시점 이전을 마스킹
+                if let selectedDate = selectedDate,
+                   let first = data.first,
+                   let highlighted = data.min(by: { abs($0.asDate.timeIntervalSince(selectedDate)) < abs($1.asDate.timeIntervalSince(selectedDate)) }) {
+                    //룰 마크 이전 색상 어둡게 처리
+                    RectangleMark(
+                        xStart: .value("시작", first.asDate), //맨 처음시간
+                        xEnd: .value("선택된 시각", highlighted.asDate) // 선택된 직전 시간
+                    )
+                    .foregroundStyle(Color.black.opacity(0.08))
+                    .zIndex(-1)
+                
+                    //룰 마크
+                    RuleMark(x: .value("선택된 시간", highlighted.asDate))
+                        .foregroundStyle(Color.black)
+                        .lineStyle(StrokeStyle(lineWidth: 2))
+                    //룰 마크 내부 색깔 초록색으로 채우기
+                    PointMark(
+                        x: .value("선택된 시간", highlighted.asDate),
+                        y: .value("승객수", highlighted.passengers)
+                    )
+                    .symbolSize(CGSize(width: 14, height: 14))
+                    .foregroundStyle(Color.green)
+
+                    
+                }
+            }
+            .chartOverlay { proxy in
+                GeometryReader { geo in
+                    ZStack {
+                        // 🎯 제스처 감지 영역
+                        Rectangle()
+                            .fill(.clear)
+                            .contentShape(Rectangle())
+                            .gesture(
+                                DragGesture(minimumDistance: 0)
+                                    .onChanged { value in
+                                        let origin = geo[proxy.plotAreaFrame].origin
+                                        let locationX = value.location.x - origin.x
+
+                                        if let date: Date = proxy.value(atX: locationX) {
+                                            self.selectedDate = date
+                                        }
+                                    }
+                            )
+
+                        // ✅ 상태 박스 (X축만 따라다님, Y축은 plot 상단 고정)
+                        if let selectedDate = selectedDate,
+                           let highlighted = data.min(by: { abs($0.asDate.timeIntervalSince(selectedDate)) < abs($1.asDate.timeIntervalSince(selectedDate)) }),
+                           let xPosition = proxy.position(forX: highlighted.asDate) {
+
+                            let plotFrame = geo[proxy.plotAreaFrame]
+                            let boxWidth: CGFloat = 70
+                            let safeX = min(max(xPosition + plotFrame.origin.x, boxWidth / 2), plotFrame.maxX - boxWidth / 2)
+
+                            VStack(spacing: 4) {
+                                Text(highlighted.asDate, format: Date.FormatStyle().hour().minute())
+                                    .font(.caption2)
+                                    .foregroundColor(.black)
+
+                                Text("\(highlighted.passengers)명")
+                                    .font(.subheadline)
+                                    .foregroundColor(.black)
+                            }
+                            .frame(width: boxWidth)
+                            .padding(6)
+                            .background(Color.white)
+                            .cornerRadius(8)
+                            .position(
+                                x: safeX,
+                                y: plotFrame.minY - 20
+                            )
+                        }
+                    }
+                }
+            }
+
+            
+            
+            .frame(height: 250) // 그래프 높이 200px로 설정
+
+            
+
+            .chartYScale(range: .plotDimension(padding: 2))
+            .chartYAxis {
+                AxisMarks(
+                    values: [0, 5000, 10000, 15000, 20000]
+                ) {
+                    AxisGridLine()
+                }
+                
+            }
+        }
+        .padding()
+        .onAppear {
+            print("\(data[19].month)-\(data[19].day)-\(data[19].timeline)-\(data[19].passengers)")
+        }
+    }
+    
+    func descriptionForCongestion(_ passengers: Int) -> String {
+        switch passengers {
+        case 0 ... 5000: return "Low"
+        case 5001 ... 10000: return "Moderate"
+        case 10001 ... 15000: return "High"
+        default: return "Extreme"
+        }
+    }
+}
