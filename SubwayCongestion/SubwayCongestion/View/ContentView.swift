@@ -70,7 +70,10 @@ struct ContentView: View {
                     
                     Spacer()
                     // 2. 혼잡도 차트
-                    CongestionGraph(data: filteredPredictions)
+                    CongestionGraph(
+                        data: filteredPredictions,
+                        currentDate: mergeDateAndHour(date: selectedDate, timeSource: currentDate)
+                    )
                 }
             }
             .toolbar {
@@ -111,6 +114,19 @@ func formattedHour(_ date: Date) -> String {
     formatter.locale = Locale(identifier: "ko_KR")
     formatter.dateFormat = "a h:00"
     return formatter.string(from: date)
+}
+
+func mergeDateAndHour(date: Date, timeSource: Date) -> Date {
+    let calendar = Calendar.current
+    let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
+    let hourComponent = calendar.component(.hour, from: timeSource)
+
+    var mergedComponents = dateComponents
+    mergedComponents.hour = hourComponent
+    mergedComponents.minute = 0
+    mergedComponents.second = 0
+
+    return calendar.date(from: mergedComponents)!
 }
 
 #Preview {

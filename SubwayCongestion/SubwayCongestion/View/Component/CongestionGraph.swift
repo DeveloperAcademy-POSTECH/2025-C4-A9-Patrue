@@ -10,10 +10,19 @@ import Charts
 import SwiftUI
 
 struct CongestionGraph: View {
-    var data: [Prediction]
-    @State private var selectedDate: Date = Date()//현재 날짜로 초기화
+    let data: [Prediction]
+    let currentDate: Date
+    
+    @State private var selectedDate: Date
     @State private var passengers: Int? = nil
     @State private var xPosition: CGFloat? = nil
+
+    init(data: [Prediction], currentDate: Date) {
+        self.data = data
+        self.currentDate = currentDate
+        _selectedDate = State(initialValue: roundedToHour(currentDate))
+        print(currentDate)
+    }
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -27,25 +36,27 @@ struct CongestionGraph: View {
                     .lineStyle(StrokeStyle(lineWidth: 2))
                     .foregroundStyle(.black)
 
-                if let firstDate = data.first?.asDate {
-                    RectangleMark(
-                        xStart: .value("시작", firstDate),
-                        xEnd: .value("선택된 시각", Date())
-                    )
-                    .foregroundStyle(.gray.opacity(0.2))
-                    .accessibilityHidden(true)
+                if currentDate == roundedToHour(Date()){
+                    if let firstDate = data.first?.asDate {
+                        RectangleMark(
+                            xStart: .value("시작", firstDate),
+                            xEnd: .value("선택된 시각", roundedToHour(currentDate))
+                        )
+                        .foregroundStyle(.gray.opacity(0.2))
+                        .accessibilityHidden(true)
+                    }
                 }
             }
             .chartYScale(range: .plotDimension(padding: 2))
             .chartYAxis {
-                AxisMarks(
-                 format: .number,
-                 preset: .inset,
-                 values: [0, 3000, 6000, 9000]
-                )
+                AxisMarks(values: [0, 4000, 7000, 10000]) { _ in
+                    AxisGridLine()
+                    AxisTick()
+                }
                 
-                AxisMarks(preset: .inset, position: .leading, values: [0, 3000, 6000, 9000]) { value in
-                    AxisValueLabel(descriptionForCongestion(value.as(Int.self) ?? 0))
+                AxisMarks(preset: .inset, position: .leading, values: [0, 4000, 7000, 10000]) { value in
+                    AxisValueLabel(labelForCongestion(value.as(Int.self) ?? 0))
+                        .offset(y: 20)
                 }
             }
             .chartOverlay { proxy in
@@ -59,6 +70,10 @@ struct CongestionGraph: View {
         .padding(.horizontal, 20)
         .onAppear {
             print("\(data[19].month)-\(data[19].day)-\(data[19].timeline)-\(data[19].passengers)")
+        }
+        .onChange(of: currentDate) {
+            xPosition = nil
+            selectedDate = roundedToHour(currentDate)
         }
     }
     
@@ -79,7 +94,7 @@ struct CongestionGraph: View {
                  y: .value("Passengers", point.passengers)
              )
              .symbolSize(CGSize(width: 14, height: 14))
-             .foregroundStyle(.green)
+             .foregroundStyle(point.asDate == roundedToHour(Date()) ? .blue : .green)
              .accessibilityHidden(true)
 
              PointMark(
@@ -87,15 +102,26 @@ struct CongestionGraph: View {
                  y: .value("Passengers", point.passengers)
              )
              .symbolSize(CGSize(width: 6, height: 6))
-             .foregroundStyle(point.asDate == selectedDate ? .green : .white)
+             .foregroundStyle(colorForPoint(date: point.asDate))
              .accessibilityLabel("Now")
          }
      }
     
+    // 날짜에 따라 색상 반환
+    func colorForPoint(date: Date) -> Color {
+        if date == roundedToHour(Date()) {
+            return .blue // 오늘 날짜인 경우
+        } else if date == selectedDate {
+            return .green // 선택된 날짜
+        } else {
+            return .white // 기본
+        }
+    }
+    
     private func overlayInfoText() -> some View {
         Group {
             if let xPosition {
-                Text("\(timeFormatter(date: selectedDate))\n혼잡")
+                Text("\(timeFormatter(date: selectedDate))\n\(descriptionForCongestion(passengers ?? 0))")
                     .font(.caption)
                     .background(Color.white)
                     .cornerRadius(4)
@@ -139,10 +165,19 @@ extension CongestionGraph{
     
     private func descriptionForCongestion(_ passengers: Int) -> String {
         switch passengers {
-        case 0..<3000: return ""
-        case 3000..<6000: return "여유"
-        case 6000..<9000: return "보통"
-        case 9000...: return "혼잡"
+        case 0..<4000: return "여유"
+        case 4000..<7000: return "보통"
+        case 7000...: return "혼잡"
+        default: return ""
+        }
+    }
+    
+    private func labelForCongestion(_ passengers: Int) -> String {
+        switch passengers {
+        case 0..<4000: return ""
+        case 4000..<7000: return "여유"
+        case 7000..<10000: return "보통"
+        case 10000...: return "혼잡"
         default: return ""
         }
     }
@@ -156,6 +191,14 @@ extension CongestionGraph{
         return timeString
     }
 }
+
+func roundedToHour(_ date: Date) -> Date {
+    let calendar = Calendar.current
+    let components = calendar.dateComponents([.year, .month, .day, .hour], from: date)
+    print(calendar.date(from: components)!)
+    return calendar.date(from: components)!
+}
+
 
 // #Preview {
 //    ChartTestView()
