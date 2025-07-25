@@ -9,8 +9,7 @@
 import Charts
 import SwiftUI
 
-struct ChartTestView: View {
-    // [month, day, timeline]
+struct CongestionGraph: View {
     var data: [Prediction]
     @State private var selectedDate: Date = Date()//현재 날짜로 초기화
     @State private var passengers: Int? = nil
@@ -22,52 +21,23 @@ struct ChartTestView: View {
             Text("인원수: \(passengers)")
             
             Chart {
-                ForEach(data, id: \.id) { dataPoint in
-                    LineMark(
-                        x: .value("Time of day", dataPoint.asDate),
-                        y: .value("Passengers", dataPoint.passengers)
-                    )
-                    .interpolationMethod(.catmullRom)
-                    .lineStyle(StrokeStyle(lineWidth: 3))
-                    .foregroundStyle(.green)
-
-                    PointMark(
-                        x: .value("Time of day", dataPoint.asDate),
-                        y: .value("Passengers", dataPoint.passengers)
-                    )
-                    .symbolSize(CGSize(width: 14, height: 14))
-                    .foregroundStyle(.green)
-                    .accessibilityHidden(true)
-
-                    PointMark(
-                        x: .value("Time of day", dataPoint.asDate),
-                        y: .value("Passengers", dataPoint.passengers)
-                    )
-                    .symbolSize(CGSize(width: 6, height: 6))
-                    .foregroundStyle(dataPoint.asDate == selectedDate ? .green : .white)
-                    .accessibilityLabel("Now")
-                    
-                    
-                }
+                chartMarks()
                 
                 RuleMark(x: .value("현재 위치", selectedDate))
                     .lineStyle(StrokeStyle(lineWidth: 2))
                     .foregroundStyle(.black)
 
-                // 가장 첫 데이터의 날짜
                 if let firstDate = data.first?.asDate {
                     RectangleMark(
                         xStart: .value("시작", firstDate),
                         xEnd: .value("선택된 시각", Date())
                     )
-                    .foregroundStyle(.gray.opacity(0.2)) // 어두운 배경 효과
+                    .foregroundStyle(.gray.opacity(0.2))
                     .accessibilityHidden(true)
                 }
-                
             }
             .chartYScale(range: .plotDimension(padding: 2))
             .chartYAxis {
-                
                 AxisMarks(
                  format: .number,
                  preset: .inset,
@@ -84,18 +54,54 @@ struct ChartTestView: View {
             .frame(height: 300)
         }
         .overlay(alignment: .topLeading) {
-            if let xPosition = xPosition {
-                Text("\(timeFormatter(date: selectedDate))\n혼잡")
-                    .font(.caption)
-                    .background(Color.white)
-                    .cornerRadius(4)
-                    .position(x: xPosition)
-                    .multilineTextAlignment(.center)
-            }
+            overlayInfoText()
         }
         .padding(.horizontal, 20)
         .onAppear {
             print("\(data[19].month)-\(data[19].day)-\(data[19].timeline)-\(data[19].passengers)")
+        }
+    }
+    
+    // MARK: - Chart Marks
+     @ChartContentBuilder
+     private func chartMarks() -> some ChartContent {
+         ForEach(data, id: \.id) { point in
+             LineMark(
+                 x: .value("Time", point.asDate),
+                 y: .value("Passengers", point.passengers)
+             )
+             .interpolationMethod(.catmullRom)
+             .lineStyle(StrokeStyle(lineWidth: 3))
+             .foregroundStyle(.green)
+
+             PointMark(
+                 x: .value("Time", point.asDate),
+                 y: .value("Passengers", point.passengers)
+             )
+             .symbolSize(CGSize(width: 14, height: 14))
+             .foregroundStyle(.green)
+             .accessibilityHidden(true)
+
+             PointMark(
+                 x: .value("Time", point.asDate),
+                 y: .value("Passengers", point.passengers)
+             )
+             .symbolSize(CGSize(width: 6, height: 6))
+             .foregroundStyle(point.asDate == selectedDate ? .green : .white)
+             .accessibilityLabel("Now")
+         }
+     }
+    
+    private func overlayInfoText() -> some View {
+        Group {
+            if let xPosition {
+                Text("\(timeFormatter(date: selectedDate))\n혼잡")
+                    .font(.caption)
+                    .background(Color.white)
+                    .cornerRadius(4)
+                    .multilineTextAlignment(.center)
+                    .position(x: xPosition)
+            }
         }
     }
     
@@ -112,7 +118,9 @@ struct ChartTestView: View {
                 )
         }
     }
-    
+}
+
+extension CongestionGraph{
     private func handleDrag(value: DragGesture.Value, proxy: ChartProxy, geo: GeometryProxy) {
         let originX = geo[proxy.plotAreaFrame].origin.x
         let localX = value.location.x - originX

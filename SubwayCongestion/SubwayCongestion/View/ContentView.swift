@@ -12,8 +12,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.modelContext) private var context
-//    @Query var predictions: [Prediction]
-
+    
     @Query(sort: [
         SortDescriptor(\Prediction.month),
         SortDescriptor(\Prediction.day),
@@ -71,7 +70,7 @@ struct ContentView: View {
                     
                     Spacer()
                     // 2. 혼잡도 차트
-                    ChartTestView(data: filteredPredictions)
+                    CongestionGraph(data: filteredPredictions)
                 }
             }
             .toolbar {
