@@ -12,25 +12,30 @@ import SwiftUI
 struct ChartTestView: View {
     // [month, day, timeline]
     var data: [Prediction]
-
+    @State private var selectedDate: Date? = nil
+    @State private var passengers: Int? = nil
+    @State private var xPosition: CGFloat? = nil
+    
     var body: some View {
         VStack(alignment: .leading) {
+            
+            Text("인원수: \(passengers)")
+            
             Chart {
                 ForEach(data, id: \.id) { dataPoint in
                     LineMark(
                         x: .value("Time of day", dataPoint.asDate),
                         y: .value("Passengers", dataPoint.passengers)
                     )
-                    .interpolationMethod(.linear)
+                    .interpolationMethod(.catmullRom)
+                    .lineStyle(StrokeStyle(lineWidth: 3))
                     .foregroundStyle(.green)
-                    .lineStyle(StrokeStyle(lineWidth: 4))
-                    .alignsMarkStylesWithPlotArea()
 
                     PointMark(
                         x: .value("Time of day", dataPoint.asDate),
                         y: .value("Passengers", dataPoint.passengers)
                     )
-                    .symbolSize(CGSize(width: 18, height: 18))
+                    .symbolSize(CGSize(width: 14, height: 14))
                     .foregroundStyle(.green)
                     .accessibilityHidden(true)
 
@@ -38,125 +43,115 @@ struct ChartTestView: View {
                         x: .value("Time of day", dataPoint.asDate),
                         y: .value("Passengers", dataPoint.passengers)
                     )
-                    .symbolSize(CGSize(width: 8, height: 8))
-                    .foregroundStyle(.white)
-                    //                    .accessibilityLabel("Now")
+                    .symbolSize(CGSize(width: 6, height: 6))
+                    .foregroundStyle(dataPoint.asDate == selectedDate ? .green : .white)
+                    .accessibilityLabel("Now")
+                    
+                    
                 }
-
-                //                if let dataPoint = closestDataPoint(for: currentDate) {
-                //                    if let firstDataPoint = currentUVData.first {
-                //                        RectangleMark(
-                //                            xStart: .value("", firstDataPoint.date),
-                //                            xEnd: .value("", dataPoint.date)
-                //                        )
-                //                        .foregroundStyle(.thickMaterial)
-                //                        .opacity(1)
-                //                        .accessibilityHidden(true)
-                //                        .mask {
-                //                            ForEach(currentUVData, id: \.date) { dataPoint in
-                //                                AreaMark(
-                //                                    x: .value("Time of day", dataPoint.date),
-                //                                    y: .value("UV index", dataPoint.uv),
-                //                                    series: .value("", "mask"),
-                //                                    stacking: .unstacked
-                //                                )
-                //                                .interpolationMethod(.cardinal)
-                //
-                //                                LineMark(
-                //                                    x: .value("Time of day", dataPoint.date),
-                //                                    y: .value("UV index", dataPoint.uv),
-                //                                    series: .value("", "mask")
-                //                                )
-                //                                .interpolationMethod(.cardinal)
-                //                                .lineStyle(StrokeStyle(lineWidth: 4))
-                //                            }
-                //                        }
-                //                    }
-                //
-                //                    RuleMark(x: .value("Now", dataPoint.date))
-                //                        .foregroundStyle(Color.secondary)
-                //                        .accessibilityHidden(true)
-                //
-                //                    PointMark(
-                //                        x: .value("Time of day", dataPoint.date),
-                //                        y: .value("UV index", dataPoint.uv)
-                //                    )
-                //                    .symbolSize(CGSize(width: 16, height: 16))
-                //                    .foregroundStyle(.regularMaterial)
-                //                    .accessibilityHidden(true)
-                //
-                //                    PointMark(
-                //                        x: .value("Time of day", dataPoint.date),
-                //                        y: .value("UV index", dataPoint.uv)
-                //                    )
-                //                    .symbolSize(CGSize(width: 6, height: 6))
-                //                    .foregroundStyle(Color.primary)
-                //                    .accessibilityLabel("Now")
-                //                }
+                
+                if let selectedDate = selectedDate {
+                    RuleMark(x: .value("현재 위치", selectedDate))
+                        .lineStyle(StrokeStyle(lineWidth: 2))
+                        .foregroundStyle(.black)
+                }else{
+//                    RuleMark(x: .value("현재 위치", ))
+//                        .lineStyle(StrokeStyle(lineWidth: 2))
+//                        .foregroundStyle(.black)
+                }
+                
+                if let selectedDate {
+                    // 가장 첫 데이터의 날짜
+                    if let firstDate = data.first?.asDate {
+                        RectangleMark(
+                            xStart: .value("시작", firstDate),
+                            xEnd: .value("선택된 시각", selectedDate)
+                        )
+                        .foregroundStyle(.gray.opacity(0.2)) // 어두운 배경 효과
+                        .accessibilityHidden(true)
+                    }
+                }
             }
-
-//            .chartXAxis {
-//                AxisMarks(values: .stride(by: .hour, count: 6)) { value in
-//                    if let date = value.as(Date.self) {
-//                        let hour = Calendar.current.component(.hour, from: date)
-//                        // 오전 6시, 오후 12시 (12), 오후 6시 (18), 자정 (0)에만 축을 표시
-//                        if hour == 6 || hour == 12 || hour == 18 || hour == 0 {
-//                            AxisGridLine()
-//                            AxisTick()
-//                            AxisValueLabel(format: .dateTime.hour())
-//                        }
-//                    }
-//                }
-//            }
-
             .chartYScale(range: .plotDimension(padding: 2))
             .chartYAxis {
+                
                 AxisMarks(
-                    values: [0, 5000, 10000, 15000, 20000]
-                ) {
-                    AxisGridLine()
+                 format: .number,
+                 preset: .inset,
+                 values: [0, 3000, 6000, 9000]
+                )
+                
+                AxisMarks(preset: .inset, position: .leading, values: [0, 3000, 6000, 9000]) { value in
+                    AxisValueLabel(descriptionForCongestion(value.as(Int.self) ?? 0))
                 }
-
-                //                AxisMarks(
-                //                    format: .number,
-                //                    preset: .aligned,
-                //                    position: .leading,
-                //                    values: Array(0 ... 25000)
-                //                )
-                //
-                //                AxisMarks(
-                //                    preset: .inset,
-                //                    position: .trailing,
-                //                    values: [0, 500, 1000, 1500, 2000]
-                //                ) { value in
-                //                    print("value: \(value)")
-                //                    AxisValueLabel(
-                //                        //                        descriptionForCongestion(value.as(Double.self)!)
-                //                        descriptionForCongestion(value)
-                //                    )
-                //                }
+            }
+            .chartOverlay { proxy in
+                GeometryReader { geo in
+                    Rectangle()
+                        .fill(Color.clear)
+                        .contentShape(Rectangle())
+                        .gesture(
+                            DragGesture()
+                                .onChanged { value in
+                                    let originX = geo[proxy.plotAreaFrame].origin.x
+                                    let currentX = value.location.x - originX
+                                    
+                                    // 좌표를 Date로 변환
+                                    if let currentDate: Date = proxy.value(atX: currentX) {
+                                        let closest = data.min(by: {
+                                            abs($0.asDate.timeIntervalSince(currentDate)) < abs($1.asDate.timeIntervalSince(currentDate))
+                                        })
+                                        selectedDate = closest?.asDate
+                                        
+                                        if let selectedPrediction = data.first(where: { $0.asDate == selectedDate }) {
+                                            passengers = selectedPrediction.passengers
+                                        }
+                                        
+                                        if let selectedDate = selectedDate,
+                                           let xPos = proxy.position(forX: selectedDate) {
+                                            xPosition = xPos + originX // 전체 좌표계 기준 위치
+                                        }
+                                    }
+                                }
+                        )
+                }
+            }
+            .frame(height: 300)
+        }
+        .overlay(alignment: .topLeading) {
+            if let xPosition = xPosition,
+               let selected = selectedDate {
+                Text("\(timeFormatter(date: selected))\n혼잡")
+                    .font(.caption)
+                    .background(Color.white)
+                    .cornerRadius(4)
+                    .position(x: xPosition)
+                    .multilineTextAlignment(.center)
             }
         }
-        .padding()
-        .border(Color.blue)
+        .padding(.horizontal, 20)
         .onAppear {
             print("\(data[19].month)-\(data[19].day)-\(data[19].timeline)-\(data[19].passengers)")
         }
     }
-
-    //    func closestDataPoint(for date: Date) -> (date: Date, passengers: Int)? {
-    //        data.sorted { first, second in
-    //            abs(date.timeIntervalSince(first.date)) < abs(date.timeIntervalSince(second.date))
-    //        }.first
-    //    }
-
+    
     func descriptionForCongestion(_ passengers: Int) -> String {
         switch passengers {
-        case 0 ... 5000: return "Low"
-        case 5001 ... 10000: return "Moderate"
-        case 10001 ... 15000: return "High"
-        default: return "Extreme"
+        case 0..<3000: return ""
+        case 3000..<6000: return "여유"
+        case 6000..<9000: return "보통"
+        case 9000...: return "혼잡"
+        default: return ""
         }
+    }
+    
+    func timeFormatter(date: Date) -> String{
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "a h:mm시"  // 오전/오후 h:mm시 형식
+
+        let timeString = formatter.string(from: date)
+        return timeString
     }
 }
 

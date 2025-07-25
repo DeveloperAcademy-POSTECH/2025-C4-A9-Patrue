@@ -24,7 +24,6 @@ struct ContentView: View {
     @State private var currentDate: Date = .now
     @State private var selectedDate: Date = .now
     @State private var showGuideSheet: Bool = false
-//    @State private var filteredPredictions: [Prediction] = []
 
     var filteredPredictions: [Prediction] {
         let calendar = Calendar.current
@@ -46,13 +45,9 @@ struct ContentView: View {
 
         return predictions.filter { item in
             item.month == 8 && item.day == 1 && item.timeline == 5
-//            item.month == selectedMonth && item.day == selectedDay && item.timeline + 5 == selectedTimeline
         }[0]
     }
-
-//    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-//    let allTimelines = Array(0 ... 23)
-
+    
     var body: some View {
         NavigationStack {
             NavigationLink("Chart") {
@@ -78,14 +73,7 @@ struct ContentView: View {
                         Text("승객수 \(currentDatePrediction.passengers)")
                     }
                     // 2. 혼잡도 차트
-                    Chart(filteredPredictions) { prediction in
-                        LineMark(
-                            x: .value("시간", String(prediction.timeline) + "시간대"),
-                            y: .value("승객 수", prediction.passengers)
-                        )
-                        .foregroundStyle(Color.green)
-                    }
-                    .padding(.all)
+                    ChartTestView(data: filteredPredictions)
                     Spacer()
                 }
             }
