@@ -47,12 +47,12 @@ struct DateSelector: View {
                             Group {
                                 if index == 0 {
                                     TopLeftCurvedShape()
-                                        .fill(selectedIndex == 0 ? Color.green : Color(hex: "E0E0E0"))
+                                        .fill(selectedIndex == 0 ? Color.green : .gray1)
                                 } else if index == data.count - 1 {
                                     TopRightCurvedShape()
-                                        .fill(selectedIndex == data.count - 1 ? Color.green : Color(hex: "E0E0E0"))
+                                        .fill(selectedIndex == data.count - 1 ? Color.green : .gray1)
                                 } else {
-                                    selectedIndex == index ? Color.green : Color(hex: "E0E0E0")
+                                    selectedIndex == index ? Color.green : .gray1
                                 }
                             }
                         )
@@ -62,14 +62,6 @@ struct DateSelector: View {
             }
             .padding(.horizontal, 16)
         }
-//        항상 오늘이 제일 왼쪽에 있어서 항상 index 가 0 일 것 같음
-//        .onAppear {
-//            // 오늘에 해당하는 index를 찾아 selectedIndex로 초기화
-//            if let idx = data.firstIndex(where: { Calendar.current.isDateInToday($0.date) }) {
-//                selectedIndex = idx
-//                selectedDate = data[idx].date
-//            }
-//        }
     }
 }
 

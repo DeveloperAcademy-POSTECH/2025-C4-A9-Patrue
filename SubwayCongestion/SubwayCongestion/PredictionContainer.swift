@@ -28,11 +28,9 @@ var predictionContainer: ModelContainer = {
             let csvString = try String(contentsOfFile: path, encoding: .utf8)
             let lines = csvString.components(separatedBy: .newlines).filter { !$0.isEmpty }
             let rows = lines.dropFirst()
-//            var count = 0
 
             for row in rows {
                 let columns = row.components(separatedBy: ",")
-//                guard columns.count >= 4 else { continue }
                 if let month = Int(columns[1]),
                    let day = Int(columns[2]),
                    let timeline = Int(columns[3])
@@ -54,12 +52,8 @@ var predictionContainer: ModelContainer = {
                         continue
                     }
 
-                    // SwiftData에 저장
-//                    let components = DateComponents(year: 2025, month: month, day: day, hour: timeline + 5)
-//                    let date = Calendar.current.date(from: components)!
                     let newPrediction = Prediction(year: 2025, month: month, day: day, timeline: timeline + 5, passengers: predictedPassengers)
                     container.mainContext.insert(newPrediction)
-//                    count += 1
                 }
             }
         } else {

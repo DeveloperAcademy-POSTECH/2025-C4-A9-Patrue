@@ -11,7 +11,6 @@ import SwiftData
 @Model
 final class Prediction: Identifiable {
     var id: UUID = UUID()
-//    var date: Date
     var year: Int
     var month: Int
     var day: Int
@@ -29,7 +28,6 @@ final class Prediction: Identifiable {
     }
 
     init(year: Int, month: Int, day: Int, timeline: Int, passengers: Int) {
-//        self.date = date
         self.year = year
         self.month = month
         self.day = day

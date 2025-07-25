@@ -21,7 +21,6 @@ struct CongestionGraph: View {
         self.data = data
         self.currentDate = currentDate
         _selectedDate = State(initialValue: roundedToHour(currentDate))
-        print(currentDate)
     }
     
     var body: some View {
@@ -68,9 +67,6 @@ struct CongestionGraph: View {
             overlayInfoText()
         }
         .padding(.horizontal, 20)
-        .onAppear {
-            print("\(data[19].month)-\(data[19].day)-\(data[19].timeline)-\(data[19].passengers)")
-        }
         .onChange(of: currentDate) {
             xPosition = nil
             selectedDate = roundedToHour(currentDate)
@@ -199,7 +195,3 @@ func roundedToHour(_ date: Date) -> Date {
     return calendar.date(from: components)!
 }
 
-
-// #Preview {
-//    ChartTestView()
-// }
