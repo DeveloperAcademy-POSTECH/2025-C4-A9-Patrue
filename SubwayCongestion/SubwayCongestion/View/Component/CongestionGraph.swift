@@ -13,16 +13,17 @@ struct CongestionGraph: View {
     let data: [Prediction]
     let currentDate: Date
     
-    @State private var selectedDate: Date
+    @Binding private var selectedDate: Date // 상태 인포그래픽이 참조해야 하기 때문에 바인딩 처리
     @State private var passengers: Int? = nil
     @State private var xPosition: CGFloat? = nil
     
     private let calendar = Calendar.current
-    
-    init(data: [Prediction], currentDate: Date) {
+
+    init(data: [Prediction], currentDate: Date, selectedDate: Binding<Date>) {
         self.data = data
         self.currentDate = currentDate
-        _selectedDate = State(initialValue: roundedToHour(currentDate))
+        //_selectedDate = State(initialValue: roundedToHour(currentDate))
+        self._selectedDate = selectedDate //바인딩으로 주입 받기 때문에 초기화 불가능.
     }
     
     var body: some View {
