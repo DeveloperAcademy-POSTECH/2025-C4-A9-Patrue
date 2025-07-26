@@ -26,23 +26,33 @@ struct CongestionGraph: View {
     var body: some View {
         VStack(alignment: .leading) {
             
-            Text("인원수: \(passengers)")
+            Text("인원수: \(String(describing: passengers))")
             
             Chart {
                 chartMarks()
                 
-                RuleMark(x: .value("현재 위치", selectedDate))
+                RuleMark(x: .value("현재 위치", adjustedForRuleMark(selectedDate)))
                     .lineStyle(StrokeStyle(lineWidth: 2))
                     .foregroundStyle(.black)
 
                 if currentDate == roundedToHour(Date()){
-                    if let firstDate = data.first?.asDate {
-                        RectangleMark(
-                            xStart: .value("시작", firstDate),
-                            xEnd: .value("선택된 시각", roundedToHour(currentDate))
-                        )
-                        .foregroundStyle(.gray.opacity(0.2))
-                        .accessibilityHidden(true)
+                    RectangleMark(
+                        xStart: .value("시작", startAtFourAM(date: currentDate)),
+                        xEnd: .value("선택된 시각", roundedToHour(currentDate))
+                    )
+                    .foregroundStyle(.gray.opacity(0.2))
+                    .accessibilityHidden(true)
+                }
+            }
+            .chartXScale(domain: xAxisDomain)
+            .chartXAxis {
+                AxisMarks(values: xAxisTickDates) { value in
+                    AxisGridLine()
+                    AxisTick()
+                    AxisValueLabel {
+                        if let dateValue = value.as(Date.self) {
+                            Text(formattedTime(dateValue)) // 오전/오후 시간 출력
+                        }
                     }
                 }
             }
@@ -104,7 +114,7 @@ struct CongestionGraph: View {
      }
     
     // 날짜에 따라 색상 반환
-    func colorForPoint(date: Date) -> Color {
+    private func colorForPoint(date: Date) -> Color {
         if date == roundedToHour(Date()) {
             return .blue // 오늘 날짜인 경우
         } else if date == selectedDate {
@@ -117,7 +127,7 @@ struct CongestionGraph: View {
     private func overlayInfoText() -> some View {
         Group {
             if let xPosition {
-                Text("\(timeFormatter(date: selectedDate))\n\(descriptionForCongestion(passengers ?? 0))")
+                Text("\(formattedTime(selectedDate, format: "a h:mm시"))\n\(descriptionForCongestion(passengers ?? 0))")
                     .font(.caption)
                     .background(Color.white)
                     .cornerRadius(4)
@@ -142,7 +152,69 @@ struct CongestionGraph: View {
     }
 }
 
+// MARK: - Helper Methods
+
 extension CongestionGraph{
+    
+    private var xAxisDomain: ClosedRange<Date> {
+        let calendar = Calendar.current
+        let start = calendar.date(bySettingHour: 4, minute: 0, second: 0, of: currentDate)!
+
+        // 다음 날 0시로 설정
+        let nextDay = calendar.date(byAdding: .day, value: 1, to: currentDate)!
+        let end = calendar.date(bySettingHour: 1, minute: 0, second: 0, of: nextDay)!
+
+        return start...end
+    }
+    
+    private var xAxisTickDates: [Date] {
+        let calendar = Calendar.current
+        let hours = [6, 12, 18, 0]  // 표시할 시각들
+        return hours.compactMap { hour in
+            if hour == 0 {
+                // 다음 날 0시
+                if let nextDay = calendar.date(byAdding: .day, value: 1, to: currentDate) {
+                    return calendar.date(bySettingHour: 0, minute: 0, second: 0, of: nextDay)
+                } else {
+                    return nil
+                }
+            } else {
+                // 오늘의 6시, 12시, 18시
+                return calendar.date(bySettingHour: hour, minute: 0, second: 0, of: currentDate)
+            }
+        }
+    }
+    
+    private func startAtFourAM(date: Date) -> Date {
+        let calendar = Calendar.current
+        if let date = calendar.date(
+            bySettingHour: 4,
+            minute: 0,
+            second: 0,
+            of: currentDate
+        ){
+            return date
+        }
+        return date
+    }
+    
+    private func adjustedForRuleMark(_ date: Date) -> Date {
+        let calendar = Calendar.current
+        let hour = calendar.component(.hour, from: date)
+        
+        if hour < 5 && hour != 0{
+            // 오전 5시로 고정
+            var components = calendar.dateComponents([.year, .month, .day], from: date)
+            components.hour = 5
+            components.minute = 0
+            components.second = 0
+            return calendar.date(from: components)!
+        } else {
+            // 그대로 사용
+            return date
+        }
+    }
+    
     private func handleDrag(value: DragGesture.Value, proxy: ChartProxy, geo: GeometryProxy) {
         let originX = geo[proxy.plotAreaFrame].origin.x
         let localX = value.location.x - originX
@@ -177,21 +249,19 @@ extension CongestionGraph{
         default: return ""
         }
     }
-    
-    private func timeFormatter(date: Date) -> String{
+
+    private func formattedTime(_ date: Date, format: String = "a h시") -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "a h:mm시"  // 오전/오후 h:mm시 형식
-
-        let timeString = formatter.string(from: date)
-        return timeString
+        formatter.dateFormat = format
+        return formatter.string(from: date)
     }
 }
 
 func roundedToHour(_ date: Date) -> Date {
     let calendar = Calendar.current
     let components = calendar.dateComponents([.year, .month, .day, .hour], from: date)
-    print(calendar.date(from: components)!)
     return calendar.date(from: components)!
 }
+
 
