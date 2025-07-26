@@ -16,13 +16,13 @@ struct CongestionGraph: View {
     @Binding private var selectedDate: Date // 상태 인포그래픽이 참조해야 하기 때문에 바인딩 처리
     @State private var passengers: Int? = nil
     @State private var xPosition: CGFloat? = nil
+    @State private var isDraggingEnabled = false
     
     private let calendar = Calendar.current
 
     init(data: [Prediction], currentDate: Date, selectedDate: Binding<Date>) {
         self.data = data
         self.currentDate = currentDate
-        //_selectedDate = State(initialValue: roundedToHour(currentDate))
         self._selectedDate = selectedDate //바인딩으로 주입 받기 때문에 초기화 불가능.
     }
     
@@ -31,7 +31,7 @@ struct CongestionGraph: View {
             Chart {
                 chartMarks()
                 
-                RuleMark(x: .value("현재 위치", adjustedForRuleMark(selectedDate)))
+                RuleMark(x: .value("현재 위치", adjustedForRuleMark(roundedToHour(selectedDate))))
                     .lineStyle(StrokeStyle(lineWidth: 2))
                     .foregroundStyle(.black)
 
@@ -40,7 +40,7 @@ struct CongestionGraph: View {
                         xStart: .value("시작", startTimeAt4AM),
                         xEnd: .value("선택된 시각", roundedToHour(currentDate))
                     )
-                    .foregroundStyle(.gray.opacity(0.2))
+                    .foregroundStyle(.gray3)
                     .accessibilityHidden(true)
                 }
             }
@@ -82,9 +82,6 @@ struct CongestionGraph: View {
         .onChange(of: currentDate) {
             xPosition = nil
             selectedDate = roundedToHour(currentDate)
-            for prediction in data {
-                print("\(prediction.asDate)시간대: \(prediction.passengers)명")
-            }
         }
     }
 }
@@ -144,9 +141,23 @@ extension CongestionGraph {
                 .fill(Color.clear)
                 .contentShape(Rectangle())
                 .gesture(
-                    DragGesture()
+                    LongPressGesture(minimumDuration: 0.5)
+                        .onEnded { _ in
+                            isDraggingEnabled = true
+                        }
+                        .sequenced(before: DragGesture())
                         .onChanged { value in
-                            handleDrag(value: value, proxy: proxy, geo: geo)
+                            switch value {
+                            case .second(true, let dragValue?):
+                                if isDraggingEnabled {
+                                    handleDrag(value: dragValue, proxy: proxy, geo: geo)
+                                }
+                            default:
+                                break
+                            }
+                        }
+                        .onEnded { _ in
+                            isDraggingEnabled = false
                         }
                 )
         }
