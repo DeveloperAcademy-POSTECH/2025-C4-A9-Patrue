@@ -132,7 +132,7 @@ extension CongestionGraph {
                         .fontWeight(.bold)
                 }
                 .background(Color.white)
-                .position(x: xPosition)
+                .position(x: xPosition, y: -30)
             }
         }
     }
