@@ -109,7 +109,7 @@ extension CongestionGraph {
                 x: .value("Time", point.asDate),
                 y: .value("Passengers", point.passengers)
             )
-            .symbolSize(CGSize(width: 14, height: 14))
+            .symbolSize(CGSize(width: 12, height: 12))
             .foregroundStyle(point.asDate == roundedToHour(Date()) ? .blue : .green)
             .accessibilityHidden(true)
 
@@ -117,9 +117,8 @@ extension CongestionGraph {
                 x: .value("Time", point.asDate),
                 y: .value("Passengers", point.passengers)
             )
-            .symbolSize(CGSize(width: 6, height: 6))
+            .symbolSize(CGSize(width: 5, height: 5))
             .foregroundStyle(colorForPoint(date: point.asDate))
-            .accessibilityLabel(point.asDate == roundedToHour(Date()) ? "Now" : "")
         }
     }
     
@@ -127,14 +126,14 @@ extension CongestionGraph {
         Group {
             if let xPosition {
                 VStack {
-                    Text(formattedTime(selectedDate, format: "a h:mm시"))
+                    Text(formattedTime(selectedDate, format: "a h:mm"))
+                        .font(.footnote)
+                        .fontWeight(.regular)
                     Text(descriptionForCongestion(passengers ?? 0))
+                        .font(.body)
+                        .fontWeight(.bold)
                 }
-                .font(.caption)
-                .padding(8)
                 .background(Color.white)
-                .cornerRadius(8)
-                .shadow(radius: 2)
                 .position(x: xPosition)
             }
         }
