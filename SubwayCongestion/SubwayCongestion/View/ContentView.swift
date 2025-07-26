@@ -21,7 +21,8 @@ struct ContentView: View {
     var predictions: [Prediction]
 
     @State private var currentDate: Date = .now
-    @State private var selectedDate: Date = .now
+    @State private var selectedDate: Date = .now//버튼 날짜 상태
+    @State private var selectedGraphDate: Date = .now//graph 날짜 상태
     @State private var showGuideSheet: Bool = false
 
     var filteredPredictions: [Prediction] {
@@ -61,14 +62,14 @@ struct ContentView: View {
                     // 1. 혼잡도 인포그래피
                     
                     //Infographics.swift를 불러오는 코드
-                    Infographics(selectedDate: $selectedDate, data: filteredPredictions)
+                    Infographics(selectedDate: $selectedGraphDate, data: filteredPredictions)
                     
                     Spacer()
                     // 2. 혼잡도 차트
                     CongestionGraph(
                         data: filteredPredictions,
                         currentDate: mergeDateAndHour(date: selectedDate, timeSource: currentDate),
-                        selectedDate: $selectedDate // graph의 selectedDate를 바인딩으로 처리
+                        selectedDate: $selectedGraphDate // graph의 selectedDate를 바인딩으로 처리
                     )
                 }
             }
