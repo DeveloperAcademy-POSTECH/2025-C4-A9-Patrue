@@ -59,20 +59,24 @@ struct ContentView: View {
 
                 VStack {
                     // 1. 혼잡도 인포그래피
-                    VStack {
-                        Text(formattedHour(currentDate))
-                            .font(.title)
-                            .fontWeight(.semibold)
-
-                        Text("\(currentDatePrediction.timeline)시간대")
-                        Text("승객수 \(currentDatePrediction.passengers)")
-                    }
+//                    VStack {
+//                        Text(formattedHour(currentDate))
+//                            .font(.title)
+//                            .fontWeight(.semibold)
+//
+//                        Text("\(currentDatePrediction.timeline)시간대")
+//                        Text("승객수 \(currentDatePrediction.passengers)")
+//                    }
+                    
+                    //Infographics.swift를 불러오는 코드
+                    Infographics(selectedDate: $selectedDate, data: filteredPredictions)
                     
                     Spacer()
                     // 2. 혼잡도 차트
                     CongestionGraph(
                         data: filteredPredictions,
-                        currentDate: mergeDateAndHour(date: selectedDate, timeSource: currentDate)
+                        currentDate: mergeDateAndHour(date: selectedDate, timeSource: currentDate),
+                        selectedDate: $selectedDate // graph의 selectedDate를 바인딩으로 처리
                     )
                 }
             }
