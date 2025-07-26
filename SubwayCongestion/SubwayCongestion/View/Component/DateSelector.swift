@@ -10,8 +10,8 @@ import SwiftUI
 struct DateSelector: View {
     @Binding var currentDate: Date
     @Binding var selectedDate: Date
-
-    @State private var selectedIndex: Int = 0
+    @Binding var selectedIndex: Int
+//    @State private var selectedIndex: Int = 0
     let range: Int = 15 // 15일치
 
     // selectedDate 기준 연속된 날짜 배열 반환

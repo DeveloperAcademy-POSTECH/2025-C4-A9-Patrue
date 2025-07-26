@@ -31,7 +31,7 @@ struct CongestionGraph: View {
             Chart {
                 chartMarks()
                 
-                RuleMark(x: .value("현재 위치", adjustedForRuleMark(selectedDate)))
+                RuleMark(x: .value("현재 위치", adjustedForRuleMark(roundedToHour(selectedDate))))
                     .lineStyle(StrokeStyle(lineWidth: 2))
                     .foregroundStyle(.black)
 
@@ -40,7 +40,7 @@ struct CongestionGraph: View {
                         xStart: .value("시작", startTimeAt4AM),
                         xEnd: .value("선택된 시각", roundedToHour(currentDate))
                     )
-                    .foregroundStyle(.gray.opacity(0.2))
+                    .foregroundStyle(.gray3)
                     .accessibilityHidden(true)
                 }
             }
@@ -82,9 +82,7 @@ struct CongestionGraph: View {
         .onChange(of: currentDate) {
             xPosition = nil
             selectedDate = roundedToHour(currentDate)
-            for prediction in data {
-                print("\(prediction.asDate)시간대: \(prediction.passengers)명")
-            }
+//            print(adjustedForRuleMark(roundedToHour(selectedDate)))
         }
     }
 }

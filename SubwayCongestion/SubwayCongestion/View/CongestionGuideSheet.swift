@@ -10,7 +10,8 @@ import SwiftUI
 struct CongestionGuideSheet: View {
     @State private var currentDate: Date = .now
     @State private var selectedDate: Date = .now
-
+    @State private var selectedIndex: Int = 0
+    
     var body: some View {
         VStack {
             Text("정보")
@@ -19,7 +20,7 @@ struct CongestionGuideSheet: View {
 
             VStack(spacing: 10) {
                 CongestionInfoRow(number: 1, description: "달력에 스와이프하여\n날짜를 확인합니다.") {
-                    DateSelector(currentDate: $currentDate, selectedDate: $selectedDate)
+                    DateSelector(currentDate: $currentDate, selectedDate: $selectedDate, selectedIndex: $selectedIndex)
                 }
 
                 CongestionInfoRow(number: 2, description: "그래프를 드래그하여 시간을 선택합니다.") {
