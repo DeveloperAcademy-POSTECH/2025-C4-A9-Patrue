@@ -59,14 +59,6 @@ struct ContentView: View {
 
                 VStack {
                     // 1. 혼잡도 인포그래피
-//                    VStack {
-//                        Text(formattedHour(currentDate))
-//                            .font(.title)
-//                            .fontWeight(.semibold)
-//
-//                        Text("\(currentDatePrediction.timeline)시간대")
-//                        Text("승객수 \(currentDatePrediction.passengers)")
-//                    }
                     
                     //Infographics.swift를 불러오는 코드
                     Infographics(selectedDate: $selectedDate, data: filteredPredictions)
