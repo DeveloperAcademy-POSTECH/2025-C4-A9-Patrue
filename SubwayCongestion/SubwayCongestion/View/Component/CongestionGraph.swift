@@ -27,8 +27,6 @@ struct CongestionGraph: View {
     
     var body: some View {
         VStack(alignment: .leading) {
-            Text("인원수: \(passengers ?? 0)")
-            
             Chart {
                 chartMarks()
                 
