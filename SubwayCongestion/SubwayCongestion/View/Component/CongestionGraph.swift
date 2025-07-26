@@ -72,6 +72,8 @@ struct CongestionGraph: View {
                 overlayGesture(proxy: proxy)
             }
             .frame(height: 300)
+            .background(.gray2)
+            .clipShape(.rect(cornerRadius: 22))
         }
         .overlay(alignment: .topLeading) {
             overlayInfoText()
