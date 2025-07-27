@@ -142,7 +142,7 @@ extension CongestionGraph {
                 .contentShape(Rectangle())
                 .gesture(
                     LongPressGesture(minimumDuration: 0.2)
-                        .onEnded { _ in
+                        .onEnded { _ in // 0.2초 누른 경우 그래프 드래그 활성화
                             isDraggingEnabled = true
                         }
                 )
@@ -153,7 +153,7 @@ extension CongestionGraph {
                                 handleDrag(value: value, proxy: proxy, geo: geo)
                             }
                         }
-                        .onEnded { value in
+                        .onEnded { value in // 드래그 끝나면 그래프 드래그 비활성화
                             if isDraggingEnabled {
                                 handleDrag(value: value, proxy: proxy, geo: geo)
                             }
