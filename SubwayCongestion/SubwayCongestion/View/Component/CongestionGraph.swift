@@ -39,7 +39,7 @@ struct CongestionGraph: View {
                 if currentDate == roundedToHour(Date()) {
                     RectangleMark(
                         xStart: .value("시작", startTimeAt4AM),
-                        xEnd: .value("선택된 시각", adjustedForRuleMark(roundedToHour(currentDate)))
+                        xEnd: .value("선택된 시각", roundedToHour(currentDate))
                     )
                     .foregroundStyle(.gray3)
                     .accessibilityHidden(true)
@@ -199,7 +199,7 @@ extension CongestionGraph {
     private func adjustedForRuleMark(_ date: Date) -> Date {
         let hour = calendar.component(.hour, from: date)
         
-        guard hour < 5 else { return date }
+        guard hour < 5, hour != 0 else { return date }
         
         return createDate(hour: 5, minute: 0, for: date)
     }
