@@ -10,11 +10,11 @@ import SwiftUI
 struct DateSelector: View {
     @Binding var currentDate: Date
     @Binding var selectedDate: Date
-
-    @State private var selectedIndex: Int = 0
+    @Binding var selectedIndex: Int
     let range: Int = 15 // 15일치
+    
+    @State private var isUserInteraction = false
 
-    // selectedDate 기준 연속된 날짜 배열 반환
     var data: [(weekday: String, day: Int, date: Date)] {
         (0 ..< range).map { offset in
             let date = Calendar.current.date(byAdding: .day, value: offset, to: currentDate)!
@@ -25,42 +25,58 @@ struct DateSelector: View {
     }
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(0 ..< data.count, id: \.self) { index in
-                    Button(action: {
-                        selectedIndex = index
-                        selectedDate = data[index].date
-                    }) {
-                        VStack(alignment: index == 0 ? .trailing : index == data.count - 1 ? .leading : .center) {
-                            Text(data[index].weekday)
-                                .font(.headline)
-                                .foregroundColor(selectedIndex == index ? .white : .primary)
-                            Text("\(data[index].day)")
-                                .font(.headline)
-                                .foregroundColor(selectedIndex == index ? .white : .primary)
-                        }
-                        .frame(minWidth: 28)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 24)
-                        .background(
-                            Group {
-                                if index == 0 {
-                                    TopLeftCurvedShape()
-                                        .fill(selectedIndex == 0 ? Color.green : .gray1)
-                                } else if index == data.count - 1 {
-                                    TopRightCurvedShape()
-                                        .fill(selectedIndex == data.count - 1 ? Color.green : .gray1)
-                                } else {
-                                    selectedIndex == index ? Color.green : .gray1
-                                }
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(0 ..< data.count, id: \.self) { index in
+                        Button(action: {
+                            selectedIndex = index
+                            selectedDate = data[index].date
+                            isUserInteraction = true
+
+                        }) {
+                            VStack(alignment: index == 0 ? .trailing : index == data.count - 1 ? .leading : .center) {
+                                Text(data[index].weekday)
+                                    .font(.headline)
+                                    .foregroundColor(selectedIndex == index ? .white : .primary)
+                                Text("\(data[index].day)")
+                                    .font(.headline)
+                                    .foregroundColor(selectedIndex == index ? .white : .primary)
                             }
-                        )
+                            .frame(minWidth: 28)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 24)
+                            .background(
+                                Group {
+                                    if index == 0 {
+                                        TopLeftCurvedShape()
+                                            .fill(selectedIndex == 0 ? Color.green : .gray1)
+                                    } else if index == data.count - 1 {
+                                        TopRightCurvedShape()
+                                            .fill(selectedIndex == data.count - 1 ? Color.green : .gray1)
+                                    } else {
+                                        selectedIndex == index ? Color.green : .gray1
+                                    }
+                                }
+                            )
+                        }
+                        .cornerRadius(12)
+                        .id(index)
                     }
-                    .cornerRadius(12)
+                }
+                .padding(.horizontal, 16)
+            }
+            .onChange(of: selectedIndex, initial: false) { _, newIndex in
+                if !isUserInteraction {
+                    withAnimation {
+                        proxy.scrollTo(newIndex, anchor: .trailing)
+                    }
+                } else{
+                    withAnimation {
+                        isUserInteraction = false
+                    }
                 }
             }
-            .padding(.horizontal, 16)
         }
     }
 }

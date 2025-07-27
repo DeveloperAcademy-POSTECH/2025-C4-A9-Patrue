@@ -16,31 +16,32 @@ struct CongestionGraph: View {
     @Binding private var selectedDate: Date // 상태 인포그래픽이 참조해야 하기 때문에 바인딩 처리
     @State private var passengers: Int? = nil
     @State private var xPosition: CGFloat? = nil
+    @State private var isDraggingEnabled = false
     
     private let calendar = Calendar.current
 
     init(data: [Prediction], currentDate: Date, selectedDate: Binding<Date>) {
         self.data = data
         self.currentDate = currentDate
-        //_selectedDate = State(initialValue: roundedToHour(currentDate))
         self._selectedDate = selectedDate //바인딩으로 주입 받기 때문에 초기화 불가능.
     }
     
     var body: some View {
         VStack(alignment: .leading) {
             Chart {
-                chartMarks()
                 
-                RuleMark(x: .value("현재 위치", adjustedForRuleMark(selectedDate)))
+                RuleMark(x: .value("현재 위치", adjustedForRuleMark(roundedToHour(selectedDate))))
                     .lineStyle(StrokeStyle(lineWidth: 2))
                     .foregroundStyle(.black)
+                
+                chartMarks()
 
                 if currentDate == roundedToHour(Date()) {
                     RectangleMark(
                         xStart: .value("시작", startTimeAt4AM),
                         xEnd: .value("선택된 시각", roundedToHour(currentDate))
                     )
-                    .foregroundStyle(.gray.opacity(0.2))
+                    .foregroundStyle(.gray3)
                     .accessibilityHidden(true)
                 }
             }
@@ -82,9 +83,6 @@ struct CongestionGraph: View {
         .onChange(of: currentDate) {
             xPosition = nil
             selectedDate = roundedToHour(currentDate)
-            for prediction in data {
-                print("\(prediction.asDate)시간대: \(prediction.passengers)명")
-            }
         }
     }
 }
@@ -137,16 +135,30 @@ extension CongestionGraph {
             }
         }
     }
-    
+
     private func overlayGesture(proxy: ChartProxy) -> some View {
         GeometryReader { geo in
             Rectangle()
                 .fill(Color.clear)
                 .contentShape(Rectangle())
                 .gesture(
+                    LongPressGesture(minimumDuration: 0.2)
+                        .onEnded { _ in // 0.2초 누른 경우 그래프 드래그 활성화
+                            isDraggingEnabled = true
+                        }
+                )
+                .simultaneousGesture(
                     DragGesture()
                         .onChanged { value in
-                            handleDrag(value: value, proxy: proxy, geo: geo)
+                            if isDraggingEnabled {
+                                handleDrag(value: value, proxy: proxy, geo: geo)
+                            }
+                        }
+                        .onEnded { value in // 드래그 끝나면 그래프 드래그 비활성화
+                            if isDraggingEnabled {
+                                handleDrag(value: value, proxy: proxy, geo: geo)
+                            }
+                            isDraggingEnabled = false
                         }
                 )
         }
@@ -187,7 +199,7 @@ extension CongestionGraph {
     private func adjustedForRuleMark(_ date: Date) -> Date {
         let hour = calendar.component(.hour, from: date)
         
-        guard hour < 5 && hour != 0 else { return date }
+        guard hour < 5 else { return date }
         
         return createDate(hour: 5, minute: 0, for: date)
     }
@@ -196,9 +208,10 @@ extension CongestionGraph {
 // MARK: - Interaction Handlers
 
 extension CongestionGraph {
-    
+
     private func handleDrag(value: DragGesture.Value, proxy: ChartProxy, geo: GeometryProxy) {
-        let originX = geo[proxy.plotAreaFrame].origin.x
+        guard let plotFrame = proxy.plotFrame else { return }
+        let originX = geo[plotFrame].origin.x
         let localX = value.location.x - originX
         
         guard let currentDate: Date = proxy.value(atX: localX) else { return }

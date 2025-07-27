@@ -24,6 +24,7 @@ struct ContentView: View {
     @State private var selectedDate: Date = .now//버튼 날짜 상태
     @State private var selectedGraphDate: Date = .now//graph 날짜 상태
     @State private var showGuideSheet: Bool = false
+    @State private var selectedIndex: Int = 0
 
     var filteredPredictions: [Prediction] {
         let calendar = Calendar.current
@@ -34,43 +35,41 @@ struct ContentView: View {
             item.month == selectedMonth && item.day == selectedDay
         }
     }
-
-    var currentDatePrediction: Prediction {
-        let calendar = Calendar.current
-        let selectedMonth = calendar.component(.month, from: selectedDate)
-        let selectedDay = calendar.component(.day, from: selectedDate)
-        let selectedTimeline = calendar.component(.hour, from: selectedDate)
-
-        print("\(selectedMonth)-\(selectedDay)-\(selectedTimeline)")
-
-        return predictions.filter { item in
-            item.month == 8 && item.day == 1 && item.timeline == 5
-        }[0]
+    
+    var mergedDate: Date {
+        mergeDateAndHour(date: selectedDate, timeSource: currentDate)
     }
     
     var body: some View {
         NavigationStack {
             VStack {
                 VStack(spacing: 16) {
-                    DateSelector(currentDate: $currentDate, selectedDate: $selectedDate)
+                    DateSelector(currentDate: $currentDate, selectedDate: $selectedDate, selectedIndex: $selectedIndex)
                     Text(formattedDateString(selectedDate))
                     Divider()
                 }
                 .padding(.top)
 
-                VStack {
-                    // 1. 혼잡도 인포그래피
-                    
-                    //Infographics.swift를 불러오는 코드
-                    Infographics(selectedDate: $selectedGraphDate, data: filteredPredictions)
-                    
-                    Spacer()
-                    // 2. 혼잡도 차트
-                    CongestionGraph(
-                        data: filteredPredictions,
-                        currentDate: mergeDateAndHour(date: selectedDate, timeSource: currentDate),
-                        selectedDate: $selectedGraphDate // graph의 selectedDate를 바인딩으로 처리
-                    )
+                TabView(selection: $selectedIndex) {
+                    ForEach(0..<15, id: \.self) { offset in
+                        VStack {
+                            Infographics(selectedDate: $selectedGraphDate, data: filteredPredictions)
+                            Spacer()
+                            CongestionGraph(
+                                data: filteredPredictions,
+                                currentDate: mergedDate,
+                                selectedDate: $selectedGraphDate
+                            )
+                        }
+                    }
+                }
+                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                .onChange(of: selectedIndex) {  _, newIndex in
+                    if let newDate = Calendar.current.date(byAdding: .day, value: newIndex, to: currentDate) {
+                        selectedDate = newDate
+                        selectedIndex = min(max(newIndex, 0), 14)
+                        print(selectedIndex, selectedDate)
+                    }
                 }
             }
             .toolbar {
@@ -91,9 +90,6 @@ struct ContentView: View {
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showGuideSheet) {
                 CongestionGuideSheet()
-            }
-            .onAppear {
-                print(filteredPredictions)
             }
         }
     }
@@ -129,3 +125,4 @@ func mergeDateAndHour(date: Date, timeSource: Date) -> Date {
 #Preview {
     ContentView()
 }
+
