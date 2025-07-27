@@ -19,15 +19,15 @@ struct ContentView: View {
         SortDescriptor(\Prediction.timeline),
     ])
     var predictions: [Prediction]
+    private let calendar = Calendar.current
 
     @State private var currentDate: Date = .now
     @State private var selectedDate: Date = .now//버튼 날짜 상태
-    @State private var selectedGraphDate: Date = .now//graph 날짜 상태
+    @State private var selectedGraphDate: Date = mergeDateAndHour(date: .now, timeSource: .now)//graph 날짜 상태
     @State private var showGuideSheet: Bool = false
     @State private var selectedIndex: Int = 0
 
     var filteredPredictions: [Prediction] {
-        let calendar = Calendar.current
         let selectedMonth = calendar.component(.month, from: selectedDate)
         let selectedDay = calendar.component(.day, from: selectedDate)
 
@@ -58,7 +58,8 @@ struct ContentView: View {
                             CongestionGraph(
                                 data: filteredPredictions,
                                 currentDate: mergedDate,
-                                selectedDate: $selectedGraphDate
+                                selectedDate: $selectedGraphDate,
+                                selectedIndex: $selectedIndex
                             )
                         }
                     }
@@ -115,7 +116,7 @@ func mergeDateAndHour(date: Date, timeSource: Date) -> Date {
     let hourComponent = calendar.component(.hour, from: timeSource)
 
     var mergedComponents = dateComponents
-    mergedComponents.hour = hourComponent
+    mergedComponents.hour = max(hourComponent, 5) // 5시보다 작으면 5로 설정
     mergedComponents.minute = 0
     mergedComponents.second = 0
 
