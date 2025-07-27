@@ -66,7 +66,7 @@ struct DateSelector: View {
                 }
                 .padding(.horizontal, 16)
             }
-            .onChange(of: selectedIndex, initial: false) { oldIndex, newIndex in
+            .onChange(of: selectedIndex, initial: false) { _, newIndex in
                 if !isUserInteraction {
                     withAnimation {
                         proxy.scrollTo(newIndex, anchor: .trailing)

@@ -35,19 +35,6 @@ struct ContentView: View {
             item.month == selectedMonth && item.day == selectedDay
         }
     }
-
-    var currentDatePrediction: Prediction {
-        let calendar = Calendar.current
-        let selectedMonth = calendar.component(.month, from: selectedDate)
-        let selectedDay = calendar.component(.day, from: selectedDate)
-        let selectedTimeline = calendar.component(.hour, from: selectedDate)
-
-        print("\(selectedMonth)-\(selectedDay)-\(selectedTimeline)")
-
-        return predictions.filter { item in
-            item.month == 8 && item.day == 1 && item.timeline == 5
-        }[0]
-    }
     
     var mergedDate: Date {
         mergeDateAndHour(date: selectedDate, timeSource: currentDate)
@@ -77,7 +64,7 @@ struct ContentView: View {
                     }
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                .onChange(of: selectedIndex) { newIndex in
+                .onChange(of: selectedIndex) {  _, newIndex in
                     if let newDate = Calendar.current.date(byAdding: .day, value: newIndex, to: currentDate) {
                         selectedDate = newDate
                         selectedIndex = min(max(newIndex, 0), 14)
