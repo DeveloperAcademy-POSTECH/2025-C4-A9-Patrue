@@ -199,7 +199,7 @@ extension CongestionGraph {
     private func adjustedForRuleMark(_ date: Date) -> Date {
         let hour = calendar.component(.hour, from: date)
         
-        guard hour < 5, hour != 0 else { return date }
+        guard hour < 5 else { return date }
         
         return createDate(hour: 5, minute: 0, for: date)
     }
