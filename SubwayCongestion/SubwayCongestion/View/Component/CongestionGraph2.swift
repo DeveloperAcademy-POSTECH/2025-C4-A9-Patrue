@@ -1,5 +1,5 @@
 //
-//  CongestionGraph.swift
+//  CongestionGraph2.swift
 //  SubwayCongestionTest
 //
 //  Created by Paidion on 7/24/25.
@@ -8,14 +8,14 @@
 import Charts
 import SwiftUI
 
-struct CongestionGraph: View {
+struct CongestionGraph2: View {
     let data: [Prediction]
     let currentDate: Date
 
     @Binding private var selectedDate: Date // 상태 인포그래픽이 참조해야 하기 때문에 바인딩 처리
     @State private var passengers: Int?
     @State private var xPosition: CGFloat?
-    @State private var isDraggingEnabled = false
+    @State private var isDraggingEnabled = false // 드래그 모드 활성화 상태
 
     private let calendar = Calendar.current
 
@@ -55,7 +55,7 @@ struct CongestionGraph: View {
                     }
                 }
             }
-            .chartYScale(domain: 0 ... 13050)
+            .chartYScale(domain: 0 ... 15050)
             .chartYAxis {
                 AxisMarks(values: [0, 4000, 7000, 13000]) { _ in
                     AxisGridLine()
@@ -86,8 +86,7 @@ struct CongestionGraph: View {
 }
 
 // MARK: - Chart Components
-
-extension CongestionGraph {
+extension CongestionGraph2 {
     @ChartContentBuilder
     private func chartMarks() -> some ChartContent {
         ForEach(data, id: \.id) { point in
@@ -138,24 +137,38 @@ extension CongestionGraph {
             Rectangle()
                 .fill(Color.clear)
                 .contentShape(Rectangle())
+
+                // MARK: - LongPressGesture와 DragGesture 분리 및 simultaneousGesture 적용
+
                 .gesture(
-                    LongPressGesture(minimumDuration: 0.5)
+                    LongPressGesture(minimumDuration: 0.2)
                         .onEnded { _ in
                             isDraggingEnabled = true
-                        }
-                        .sequenced(before: DragGesture())
-                        .onChanged { value in
-                            switch value {
-                            case .second(true, let dragValue?):
-                                if isDraggingEnabled {
-                                    handleDrag(value: dragValue, proxy: proxy, geo: geo)
+                            let currentX = geo[proxy.plotFrame!].origin.x + geo[proxy.plotFrame!].size.width / 2
+                            let localX = currentX - geo[proxy.plotFrame!].origin.x
+                            if let currentDate: Date = proxy.value(atX: localX) {
+                                if let closest = data.min(by: { abs($0.asDate.timeIntervalSince(currentDate)) < abs($1.asDate.timeIntervalSince(currentDate)) }) {
+                                    selectedDate = closest.asDate
+                                    passengers = closest.passengers
+                                    if let xPos = proxy.position(forX: closest.asDate) {
+                                        xPosition = xPos + geo[proxy.plotFrame!].origin.x
+                                    }
                                 }
-                            default:
-                                break
                             }
                         }
-                        .onEnded { _ in
-                            isDraggingEnabled = false
+                )
+                .simultaneousGesture( // 드래그 제스처: 다른 제스처와 동시 인식 허용
+                    DragGesture()
+                        .onChanged { value in
+                            if isDraggingEnabled { // 드래그 모드가 활성화되었을 때만 처리
+                                handleDrag(value: value, proxy: proxy, geo: geo)
+                            }
+                        }
+                        .onEnded { value in
+                            if isDraggingEnabled { // 드래그 모드가 활성화된 상태에서 드래그가 끝났을 경우
+                                handleDrag(value: value, proxy: proxy, geo: geo) // 마지막 위치 업데이트
+                            }
+                            isDraggingEnabled = false // 드래그 종료 시 모드 비활성화
                         }
                 )
         }
@@ -163,8 +176,7 @@ extension CongestionGraph {
 }
 
 // MARK: - Calendar & Date Helpers
-
-extension CongestionGraph {
+extension CongestionGraph2 {
     private var xAxisDomain: ClosedRange<Date> {
         let start = createDate(hour: 4, minute: 0, for: currentDate)
         let nextDay = calendar.date(byAdding: .day, value: 1, to: currentDate)!
@@ -202,10 +214,9 @@ extension CongestionGraph {
 }
 
 // MARK: - Interaction Handlers
-
-extension CongestionGraph {
+extension CongestionGraph2 {
     private func handleDrag(value: DragGesture.Value, proxy: ChartProxy, geo: GeometryProxy) {
-        let originX = geo[proxy.plotAreaFrame].origin.x
+        let originX = geo[proxy.plotFrame!].origin.x
         let localX = value.location.x - originX
 
         guard let currentDate: Date = proxy.value(atX: localX) else { return }
@@ -232,8 +243,7 @@ extension CongestionGraph {
 }
 
 // MARK: - Congestion Level Helpers
-
-extension CongestionGraph {
+extension CongestionGraph2 {
     private func descriptionForCongestion(_ passengers: Int) -> String {
         switch passengers {
         case 0 ..< 4000: return "여유"
@@ -259,10 +269,4 @@ extension CongestionGraph {
         formatter.dateFormat = format
         return formatter.string(from: date)
     }
-}
-
-func roundedToHour(_ date: Date) -> Date {
-    let calendar = Calendar.current
-    let components = calendar.dateComponents([.year, .month, .day, .hour], from: date)
-    return calendar.date(from: components)!
 }
