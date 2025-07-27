@@ -134,29 +134,29 @@ extension CongestionGraph {
             }
         }
     }
-    
+
     private func overlayGesture(proxy: ChartProxy) -> some View {
         GeometryReader { geo in
             Rectangle()
                 .fill(Color.clear)
                 .contentShape(Rectangle())
                 .gesture(
-                    LongPressGesture(minimumDuration: 0.5)
+                    LongPressGesture(minimumDuration: 0.2)
                         .onEnded { _ in
                             isDraggingEnabled = true
                         }
-                        .sequenced(before: DragGesture())
+                )
+                .simultaneousGesture(
+                    DragGesture()
                         .onChanged { value in
-                            switch value {
-                            case .second(true, let dragValue?):
-                                if isDraggingEnabled {
-                                    handleDrag(value: dragValue, proxy: proxy, geo: geo)
-                                }
-                            default:
-                                break
+                            if isDraggingEnabled {
+                                handleDrag(value: value, proxy: proxy, geo: geo)
                             }
                         }
-                        .onEnded { _ in
+                        .onEnded { value in
+                            if isDraggingEnabled {
+                                handleDrag(value: value, proxy: proxy, geo: geo)
+                            }
                             isDraggingEnabled = false
                         }
                 )
@@ -207,9 +207,10 @@ extension CongestionGraph {
 // MARK: - Interaction Handlers
 
 extension CongestionGraph {
-    
+
     private func handleDrag(value: DragGesture.Value, proxy: ChartProxy, geo: GeometryProxy) {
-        let originX = geo[proxy.plotAreaFrame].origin.x
+        guard let plotFrame = proxy.plotFrame else { return }
+        let originX = geo[plotFrame].origin.x
         let localX = value.location.x - originX
         
         guard let currentDate: Date = proxy.value(atX: localX) else { return }
