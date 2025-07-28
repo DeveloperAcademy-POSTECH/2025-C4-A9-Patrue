@@ -12,24 +12,22 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.modelContext) private var context
-
+    
     @Query(sort: [
         SortDescriptor(\Prediction.month),
         SortDescriptor(\Prediction.day),
         SortDescriptor(\Prediction.timeline),
     ])
     var predictions: [Prediction]
+    private let calendar = Calendar.current
 
     @State private var currentDate: Date = .now
-    @State private var selectedDate: Date = .now // 버튼 날짜 상태
-    @State private var selectedGraphDate: Date = .now // graph 날짜 상태
+    @State private var selectedDate: Date = .now//버튼 날짜 상태
+    @State private var selectedGraphDate: Date = mergeDateAndHour(date: .now, timeSource: .now)//graph 날짜 상태
     @State private var showGuideSheet: Bool = false
     @State private var selectedIndex: Int = 0
 
-    @State private var timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-
     var filteredPredictions: [Prediction] {
-        let calendar = Calendar.current
         let selectedMonth = calendar.component(.month, from: selectedDate)
         let selectedDay = calendar.component(.day, from: selectedDate)
 
@@ -37,11 +35,11 @@ struct ContentView: View {
             item.month == selectedMonth && item.day == selectedDay
         }
     }
-
+    
     var mergedDate: Date {
         mergeDateAndHour(date: selectedDate, timeSource: currentDate)
     }
-
+    
     var body: some View {
         NavigationStack {
             VStack {
@@ -53,20 +51,21 @@ struct ContentView: View {
                 .padding(.top)
 
                 TabView(selection: $selectedIndex) {
-                    ForEach(0 ..< 15, id: \.self) { _ in
+                    ForEach(0..<15, id: \.self) { offset in
                         VStack {
                             Infographics(selectedDate: $selectedGraphDate, data: filteredPredictions)
                             Spacer()
-                            CongestionGraph2(
+                            CongestionGraph(
                                 data: filteredPredictions,
                                 currentDate: mergedDate,
-                                selectedDate: $selectedGraphDate
+                                selectedDate: $selectedGraphDate,
+                                selectedIndex: $selectedIndex
                             )
                         }
                     }
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                .onChange(of: selectedIndex) { _, newIndex in
+                .onChange(of: selectedIndex) {  _, newIndex in
                     if let newDate = Calendar.current.date(byAdding: .day, value: newIndex, to: currentDate) {
                         selectedDate = newDate
                         selectedIndex = min(max(newIndex, 0), 14)
@@ -93,9 +92,6 @@ struct ContentView: View {
             .sheet(isPresented: $showGuideSheet) {
                 CongestionGuideSheet()
             }
-            .onReceive(timer) { _ in
-                currentDate = .now // 매 초마다 currentDate를 현재 시간으로 업데이트
-            }
         }
     }
 }
@@ -120,7 +116,7 @@ func mergeDateAndHour(date: Date, timeSource: Date) -> Date {
     let hourComponent = calendar.component(.hour, from: timeSource)
 
     var mergedComponents = dateComponents
-    mergedComponents.hour = hourComponent
+    mergedComponents.hour = max(hourComponent, 5) // 5시보다 작으면 5로 설정
     mergedComponents.minute = 0
     mergedComponents.second = 0
 
@@ -130,3 +126,4 @@ func mergeDateAndHour(date: Date, timeSource: Date) -> Date {
 #Preview {
     ContentView()
 }
+

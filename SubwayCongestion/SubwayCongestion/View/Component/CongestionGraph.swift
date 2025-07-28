@@ -1,9 +1,10 @@
 //
-//  CongestionGraph.swift
+//  ChartTestView.swift
 //  SubwayCongestionTest
 //
 //  Created by Paidion on 7/24/25.
 //
+
 
 import Charts
 import SwiftUI
@@ -11,27 +12,30 @@ import SwiftUI
 struct CongestionGraph: View {
     let data: [Prediction]
     let currentDate: Date
-
+    
     @Binding private var selectedDate: Date // 상태 인포그래픽이 참조해야 하기 때문에 바인딩 처리
-    @State private var passengers: Int?
-    @State private var xPosition: CGFloat?
+    @Binding private var selectedIndex: Int // 탭뷰 인덱스
+    @State private var passengers: Int? = nil
+    @State private var xPosition: CGFloat = 0.0
     @State private var isDraggingEnabled = false
-
+    
     private let calendar = Calendar.current
 
-    init(data: [Prediction], currentDate: Date, selectedDate: Binding<Date>) {
+    init(data: [Prediction], currentDate: Date, selectedDate: Binding<Date>, selectedIndex: Binding<Int>) {
         self.data = data
         self.currentDate = currentDate
-        _selectedDate = selectedDate // 바인딩으로 주입 받기 때문에 초기화 불가능.
+        self._selectedDate = selectedDate //바인딩으로 주입 받기 때문에 초기화 불가능.
+        self._selectedIndex = selectedIndex
     }
-
+    
     var body: some View {
         VStack(alignment: .leading) {
             Chart {
-                RuleMark(x: .value("현재 위치", adjustedForRuleMark(roundedToHour(selectedDate))))
+                
+                RuleMark(x: .value("현재 위치", roundedToHour(selectedDate)))
                     .lineStyle(StrokeStyle(lineWidth: 2))
                     .foregroundStyle(.black)
-
+                
                 chartMarks()
 
                 if currentDate == roundedToHour(Date()) {
@@ -55,13 +59,13 @@ struct CongestionGraph: View {
                     }
                 }
             }
-            .chartYScale(domain: 0 ... 13050)
+            .chartYScale(domain: 0...13050)
             .chartYAxis {
                 AxisMarks(values: [0, 4000, 7000, 13000]) { _ in
                     AxisGridLine()
                     AxisTick()
                 }
-
+                
                 AxisMarks(preset: .inset, position: .leading, values: [0, 4000, 7000, 13000]) { value in
                     AxisValueLabel(labelForCongestion(value.as(Int.self) ?? 0))
                         .offset(y: 23)
@@ -79,8 +83,7 @@ struct CongestionGraph: View {
         }
         .padding(.horizontal, 20)
         .onChange(of: currentDate) {
-            xPosition = nil
-            selectedDate = roundedToHour(currentDate)
+            selectedDate = adjustedForRuleMark(roundedToHour(currentDate))
         }
     }
 }
@@ -88,6 +91,7 @@ struct CongestionGraph: View {
 // MARK: - Chart Components
 
 extension CongestionGraph {
+    
     @ChartContentBuilder
     private func chartMarks() -> some ChartContent {
         ForEach(data, id: \.id) { point in
@@ -115,21 +119,19 @@ extension CongestionGraph {
             .foregroundStyle(colorForPoint(date: point.asDate))
         }
     }
-
+    
     private func overlayInfoText() -> some View {
         Group {
-            if let xPosition {
-                VStack {
-                    Text(formattedTime(selectedDate, format: "a h:mm"))
-                        .font(.footnote)
-                        .fontWeight(.regular)
-                    Text(descriptionForCongestion(passengers ?? 0))
-                        .font(.body)
-                        .fontWeight(.bold)
-                }
-                .background(Color.white)
-                .position(x: xPosition, y: -30)
+            VStack {
+                Text(formattedTime(selectedDate, format: "a h:mm"))
+                    .font(.footnote)
+                    .fontWeight(.regular)
+                Text(descriptionForCongestion(passengers ?? 0))
+                    .font(.body)
+                    .fontWeight(.bold)
             }
+            .background(Color.white)
+            .position(x: xPosition, y: -30)
         }
     }
 
@@ -139,22 +141,28 @@ extension CongestionGraph {
                 .fill(Color.clear)
                 .contentShape(Rectangle())
                 .gesture(
-                    LongPressGesture(minimumDuration: 0.5)
-                        .onEnded { _ in
+                    LongPressGesture(minimumDuration: 0.2)
+                        .onEnded { _ in // 0.2초 누른 경우 그래프 드래그 활성화
                             isDraggingEnabled = true
                         }
-                        .sequenced(before: DragGesture())
+                )
+                .onAppear {
+                    updateXPosition(proxy: proxy, geo: geo)
+                }
+                .onChange(of: selectedIndex) {
+                    updateXPosition(proxy: proxy, geo: geo)
+                }
+                .simultaneousGesture(
+                    DragGesture()
                         .onChanged { value in
-                            switch value {
-                            case .second(true, let dragValue?):
-                                if isDraggingEnabled {
-                                    handleDrag(value: dragValue, proxy: proxy, geo: geo)
-                                }
-                            default:
-                                break
+                            if isDraggingEnabled {
+                                handleDrag(value: value, proxy: proxy, geo: geo)
                             }
                         }
-                        .onEnded { _ in
+                        .onEnded { value in // 드래그 끝나면 그래프 드래그 비활성화
+                            if isDraggingEnabled {
+                                handleDrag(value: value, proxy: proxy, geo: geo)
+                            }
                             isDraggingEnabled = false
                         }
                 )
@@ -165,13 +173,14 @@ extension CongestionGraph {
 // MARK: - Calendar & Date Helpers
 
 extension CongestionGraph {
+    
     private var xAxisDomain: ClosedRange<Date> {
         let start = createDate(hour: 4, minute: 0, for: currentDate)
         let nextDay = calendar.date(byAdding: .day, value: 1, to: currentDate)!
         let end = createDate(hour: 1, minute: 0, for: nextDay)
-        return start ... end
+        return start...end
     }
-
+    
     private var xAxisTickDates: [Date] {
         let hours = [6, 12, 18, 0]
         return hours.compactMap { hour in
@@ -183,20 +192,20 @@ extension CongestionGraph {
             }
         }
     }
-
+    
     private var startTimeAt4AM: Date {
         createDate(hour: 4, minute: 0, for: currentDate)
     }
-
+    
     private func createDate(hour: Int, minute: Int, for date: Date) -> Date {
         calendar.date(bySettingHour: hour, minute: minute, second: 0, of: date) ?? date
     }
-
+    
     private func adjustedForRuleMark(_ date: Date) -> Date {
         let hour = calendar.component(.hour, from: date)
-
-        guard hour < 5, hour != 0 else { return date }
-
+        
+        guard hour < 5 else { return date }
+        
         return createDate(hour: 5, minute: 0, for: date)
     }
 }
@@ -204,22 +213,34 @@ extension CongestionGraph {
 // MARK: - Interaction Handlers
 
 extension CongestionGraph {
+    
+    private func updateXPosition(proxy: ChartProxy, geo: GeometryProxy) {
+        guard let plotFrame = proxy.plotFrame else { return }
+        let originX = geo[plotFrame].origin.x
+        let date = roundedToHour(currentDate)
+        
+        if let xPos = proxy.position(forX: date) {
+            xPosition = xPos + originX
+        }
+    }
+    
     private func handleDrag(value: DragGesture.Value, proxy: ChartProxy, geo: GeometryProxy) {
-        let originX = geo[proxy.plotAreaFrame].origin.x
+        guard let plotFrame = proxy.plotFrame else { return }
+        let originX = geo[plotFrame].origin.x
         let localX = value.location.x - originX
-
+        
         guard let currentDate: Date = proxy.value(atX: localX) else { return }
-
+        
         if let closest = data.min(by: { abs($0.asDate.timeIntervalSince(currentDate)) < abs($1.asDate.timeIntervalSince(currentDate)) }) {
             selectedDate = closest.asDate
             passengers = closest.passengers
-
+            
             if let xPos = proxy.position(forX: closest.asDate) {
                 xPosition = xPos + originX
             }
         }
     }
-
+    
     private func colorForPoint(date: Date) -> Color {
         if date == roundedToHour(Date()) {
             return .blue
@@ -234,20 +255,21 @@ extension CongestionGraph {
 // MARK: - Congestion Level Helpers
 
 extension CongestionGraph {
+
     private func descriptionForCongestion(_ passengers: Int) -> String {
         switch passengers {
-        case 0 ..< 4000: return "여유"
-        case 4000 ..< 7000: return "보통"
+        case 0..<4000: return "여유"
+        case 4000..<7000: return "보통"
         case 7000...: return "혼잡"
         default: return ""
         }
     }
-
+    
     private func labelForCongestion(_ passengers: Int) -> String {
         switch passengers {
-        case 0 ..< 4000: return ""
-        case 4000 ..< 7000: return "여유"
-        case 7000 ..< 13000: return "보통"
+        case 0..<4000: return ""
+        case 4000..<7000: return "여유"
+        case 7000..<13000: return "보통"
         case 13000...: return "혼잡"
         default: return ""
         }
@@ -266,3 +288,6 @@ func roundedToHour(_ date: Date) -> Date {
     let components = calendar.dateComponents([.year, .month, .day, .hour], from: date)
     return calendar.date(from: components)!
 }
+
+
+
