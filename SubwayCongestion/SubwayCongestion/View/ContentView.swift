@@ -11,8 +11,6 @@ import SwiftData
 import SwiftUI
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var context
-    
     @Query(sort: [
         SortDescriptor(\Prediction.month),
         SortDescriptor(\Prediction.day),
@@ -22,8 +20,8 @@ struct ContentView: View {
     private let calendar = Calendar.current
 
     @State private var currentDate: Date = .now
-    @State private var selectedDate: Date = .now//버튼 날짜 상태
-    @State private var selectedGraphDate: Date = mergeDateAndHour(date: .now, timeSource: .now)//graph 날짜 상태
+    @State private var selectedDate: Date = .now // 버튼 날짜 상태
+    @State private var selectedGraphDate: Date = mergeDateAndHour(date: .now, timeSource: .now) // graph 날짜 상태
     @State private var showGuideSheet: Bool = false
     @State private var selectedIndex: Int = 0
     
@@ -37,11 +35,11 @@ struct ContentView: View {
             item.month == selectedMonth && item.day == selectedDay
         }
     }
-    
+
     var mergedDate: Date {
         mergeDateAndHour(date: selectedDate, timeSource: currentDate)
     }
-    
+
     var body: some View {
         NavigationStack {
             VStack {
@@ -53,7 +51,7 @@ struct ContentView: View {
                 .padding(.top)
 
                 TabView(selection: $selectedIndex) {
-                    ForEach(0..<15, id: \.self) { offset in
+                    ForEach(0 ..< 7, id: \.self) { _ in
                         VStack {
                             Infographics(selectedDate: $selectedGraphDate, data: filteredPredictions)
                             Spacer()
@@ -67,11 +65,10 @@ struct ContentView: View {
                     }
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                .onChange(of: selectedIndex) {  _, newIndex in
+                .onChange(of: selectedIndex) { _, newIndex in
                     if let newDate = Calendar.current.date(byAdding: .day, value: newIndex, to: currentDate) {
                         selectedDate = newDate
                         selectedIndex = min(max(newIndex, 0), 14)
-                        print(selectedIndex, selectedDate)
                     }
                 }
             }
@@ -160,4 +157,3 @@ func mergeDateAndHour(date: Date, timeSource: Date) -> Date {
 #Preview {
     ContentView()
 }
-

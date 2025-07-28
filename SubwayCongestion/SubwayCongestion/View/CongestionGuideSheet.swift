@@ -42,9 +42,10 @@ struct CongestionGuideSheet: View {
                             Text("기준")
                                 .font(.system(size: 22, weight: .bold))
                             Spacer()
-                            Text("여유: 40% 미만\n보통: 40% ~ 70%\n혼잡: 70% 초과")
+                            Text("여유: 9,000명 미만\n보통\n: 9,000명 ~ 21,000명\n혼잡: 21,000 초과")
                                 .font(.system(size: 17, weight: .semibold))
                         }
+                        Spacer()
                     }
                     .padding()
                     .background(.gray2, in: RoundedRectangle(cornerRadius: 16))
@@ -54,7 +55,7 @@ struct CongestionGuideSheet: View {
                             Text("근거")
                                 .font(.system(size: 22, weight: .bold))
                             Spacer()
-                            Text("출퇴근, 계절, 요일,\n근처 이벤트 등 다양한\n정보를 통한 Ai 추론")
+                            Text("잠실역 근처 이벤트, 폭염, 한파, 롯데월드(몰) 운영시간 등 다양한 정보를 통한 Ai 추론")
                                 .font(.system(size: 17, weight: .semibold))
                         }
                     }

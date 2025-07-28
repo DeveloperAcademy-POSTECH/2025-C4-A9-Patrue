@@ -11,7 +11,7 @@ struct DateSelector: View {
     @Binding var currentDate: Date
     @Binding var selectedDate: Date
     @Binding var selectedIndex: Int
-    let range: Int = 15 // 15일치
+    let range: Int = 7 // 7일치
 
     @State private var isUserInteraction = false
 
