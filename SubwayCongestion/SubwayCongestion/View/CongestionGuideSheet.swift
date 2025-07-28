@@ -11,7 +11,7 @@ struct CongestionGuideSheet: View {
     @State private var currentDate: Date = .now
     @State private var selectedDate: Date = .now
     @State private var selectedIndex: Int = 0
-    
+
     var body: some View {
         VStack {
             Text("정보")
@@ -36,7 +36,7 @@ struct CongestionGuideSheet: View {
                 }
 
                 // 기준 & 근거 정보
-                HStack(spacing: 11) {
+                HStack {
                     HStack {
                         VStack(alignment: .leading) {
                             Text("기준")
@@ -45,7 +45,6 @@ struct CongestionGuideSheet: View {
                             Text("여유: 40% 미만\n보통: 40% ~ 70%\n혼잡: 70% 초과")
                                 .font(.system(size: 17, weight: .semibold))
                         }
-                        Spacer()
                     }
                     .padding()
                     .background(.gray2, in: RoundedRectangle(cornerRadius: 16))
@@ -55,7 +54,7 @@ struct CongestionGuideSheet: View {
                             Text("근거")
                                 .font(.system(size: 22, weight: .bold))
                             Spacer()
-                            Text("출퇴근, 계절, 요일, 근처 이벤트 등 다양한 정보를 통한 Ai 추론")
+                            Text("출퇴근, 계절, 요일,\n근처 이벤트 등 다양한\n정보를 통한 Ai 추론")
                                 .font(.system(size: 17, weight: .semibold))
                         }
                     }

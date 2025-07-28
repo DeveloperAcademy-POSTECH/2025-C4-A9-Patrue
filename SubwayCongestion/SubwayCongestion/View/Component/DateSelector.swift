@@ -12,7 +12,7 @@ struct DateSelector: View {
     @Binding var selectedDate: Date
     @Binding var selectedIndex: Int
     let range: Int = 15 // 15일치
-    
+
     @State private var isUserInteraction = false
 
     var data: [(weekday: String, day: Int, date: Date)] {
@@ -71,7 +71,7 @@ struct DateSelector: View {
                     withAnimation {
                         proxy.scrollTo(newIndex, anchor: .trailing)
                     }
-                } else{
+                } else {
                     withAnimation {
                         isUserInteraction = false
                     }

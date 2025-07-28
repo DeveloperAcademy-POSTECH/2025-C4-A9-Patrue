@@ -17,7 +17,7 @@ var predictionContainer: ModelContainer = {
         )
         let modelContext = container.mainContext
 
-        let regressionModel = try? Basic(configuration: .init())
+        let regressionModel = try? Final(configuration: .init())
 
         if try modelContext.fetch(FetchDescriptor<Prediction>()).isEmpty {
             guard let path = Bundle.main.path(forResource: "future_input", ofType: "csv") else {
@@ -31,22 +31,29 @@ var predictionContainer: ModelContainer = {
 
             for row in rows {
                 let columns = row.components(separatedBy: ",")
-                if let month = Int(columns[1]),
-                   let day = Int(columns[2]),
-                   let timeline = Int(columns[3])
+                if let month = Int(columns[0]),
+                   let day = Int(columns[1]),
+                   let timeline = Int(columns[2]),
+                   let lotteVisit = Int(columns[3]),
+                   let dayOfWeek = Int(columns[4]),
+                   let holiday = Int(columns[5]),
+                   let specialDay = Int(columns[6]),
+                   let isWeekend = Int(columns[7])
                 {
                     // 여기에 CoreML 예측값 적용
                     let predictedPassengers: Int
                     do {
                         let prediction = try regressionModel?.prediction(
-                            month: Int64(month),
-                            day: Int64(day),
-                            timeline: Int64(timeline) + 5,
-                            morning_commute: Int64(timeline) >= 3 && Int64(timeline) <= 5 ? 1 : 0,
-                            evening_commute: Int64(timeline) >= 15 && Int64(timeline) <= 7 ? 1 : 0,
-                            late_night: Int64(timeline) >= 18 ? 1 : 0
+                            Month: Int64(month),
+                            Day: Int64(day),
+                            Timeline: Int64(timeline),
+                            Lotte_Visit: Int64(lotteVisit),
+                            Day_of_Week: Int64(dayOfWeek),
+                            Holiday: Int64(holiday),
+                            Special_Day: Int64(specialDay),
+                            is_weekend: Int64(isWeekend)
                         )
-                        predictedPassengers = Int((prediction?.passengers ?? 0).rounded())
+                        predictedPassengers = Int((prediction?.Passengers ?? 0).rounded())
                     } catch {
                         print("예측 실패: \(error)")
                         continue
