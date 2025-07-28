@@ -14,23 +14,25 @@ struct CongestionGraph: View {
     let currentDate: Date
     
     @Binding private var selectedDate: Date // 상태 인포그래픽이 참조해야 하기 때문에 바인딩 처리
+    @Binding private var selectedIndex: Int // 탭뷰 인덱스
     @State private var passengers: Int? = nil
-    @State private var xPosition: CGFloat? = nil
+    @State private var xPosition: CGFloat = 0.0
     @State private var isDraggingEnabled = false
     
     private let calendar = Calendar.current
 
-    init(data: [Prediction], currentDate: Date, selectedDate: Binding<Date>) {
+    init(data: [Prediction], currentDate: Date, selectedDate: Binding<Date>, selectedIndex: Binding<Int>) {
         self.data = data
         self.currentDate = currentDate
         self._selectedDate = selectedDate //바인딩으로 주입 받기 때문에 초기화 불가능.
+        self._selectedIndex = selectedIndex
     }
     
     var body: some View {
         VStack(alignment: .leading) {
             Chart {
                 
-                RuleMark(x: .value("현재 위치", adjustedForRuleMark(roundedToHour(selectedDate))))
+                RuleMark(x: .value("현재 위치", roundedToHour(selectedDate)))
                     .lineStyle(StrokeStyle(lineWidth: 2))
                     .foregroundStyle(.black)
                 
@@ -81,8 +83,7 @@ struct CongestionGraph: View {
         }
         .padding(.horizontal, 20)
         .onChange(of: currentDate) {
-            xPosition = nil
-            selectedDate = roundedToHour(currentDate)
+            selectedDate = adjustedForRuleMark(roundedToHour(currentDate))
         }
     }
 }
@@ -121,18 +122,16 @@ extension CongestionGraph {
     
     private func overlayInfoText() -> some View {
         Group {
-            if let xPosition {
-                VStack {
-                    Text(formattedTime(selectedDate, format: "a h:mm"))
-                        .font(.footnote)
-                        .fontWeight(.regular)
-                    Text(descriptionForCongestion(passengers ?? 0))
-                        .font(.body)
-                        .fontWeight(.bold)
-                }
-                .background(Color.white)
-                .position(x: xPosition, y: -30)
+            VStack {
+                Text(formattedTime(selectedDate, format: "a h:mm"))
+                    .font(.footnote)
+                    .fontWeight(.regular)
+                Text(descriptionForCongestion(passengers ?? 0))
+                    .font(.body)
+                    .fontWeight(.bold)
             }
+            .background(Color.white)
+            .position(x: xPosition, y: -30)
         }
     }
 
@@ -147,6 +146,12 @@ extension CongestionGraph {
                             isDraggingEnabled = true
                         }
                 )
+                .onAppear {
+                    updateXPosition(proxy: proxy, geo: geo)
+                }
+                .onChange(of: selectedIndex) {
+                    updateXPosition(proxy: proxy, geo: geo)
+                }
                 .simultaneousGesture(
                     DragGesture()
                         .onChanged { value in
@@ -208,7 +213,17 @@ extension CongestionGraph {
 // MARK: - Interaction Handlers
 
 extension CongestionGraph {
-
+    
+    private func updateXPosition(proxy: ChartProxy, geo: GeometryProxy) {
+        guard let plotFrame = proxy.plotFrame else { return }
+        let originX = geo[plotFrame].origin.x
+        let date = roundedToHour(currentDate)
+        
+        if let xPos = proxy.position(forX: date) {
+            xPosition = xPos + originX
+        }
+    }
+    
     private func handleDrag(value: DragGesture.Value, proxy: ChartProxy, geo: GeometryProxy) {
         guard let plotFrame = proxy.plotFrame else { return }
         let originX = geo[plotFrame].origin.x
@@ -273,5 +288,6 @@ func roundedToHour(_ date: Date) -> Date {
     let components = calendar.dateComponents([.year, .month, .day, .hour], from: date)
     return calendar.date(from: components)!
 }
+
 
 
