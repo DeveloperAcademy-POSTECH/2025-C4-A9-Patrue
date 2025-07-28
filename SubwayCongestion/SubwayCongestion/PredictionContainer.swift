@@ -20,7 +20,7 @@ var predictionContainer: ModelContainer = {
         let regressionModel = try? Final(configuration: .init())
 
         if try modelContext.fetch(FetchDescriptor<Prediction>()).isEmpty {
-            guard let path = Bundle.main.path(forResource: "final_input", ofType: "csv") else {
+            guard let path = Bundle.main.path(forResource: "future_input", ofType: "csv") else {
                 print("CSV 파일을 찾을 수 없습니다.")
                 return container
             }
