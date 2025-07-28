@@ -6,23 +6,122 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		467A010E2E376F1000E9689F /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 467A010D2E376F1000E9689F /* WidgetKit.framework */; };
+		467A01102E376F1000E9689F /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 467A010F2E376F1000E9689F /* SwiftUI.framework */; };
+		467A011F2E376F1200E9689F /* CongestionWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 467A010B2E376F1000E9689F /* CongestionWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		467A011D2E376F1200E9689F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 71D1B1BC2E2A977300BA3373 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 467A010A2E376F1000E9689F;
+			remoteInfo = CongestionWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		467A01202E376F1200E9689F /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				467A011F2E376F1200E9689F /* CongestionWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		467A010B2E376F1000E9689F /* CongestionWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CongestionWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		467A010D2E376F1000E9689F /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		467A010F2E376F1000E9689F /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		467A01252E37A12B00E9689F /* CongestionWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CongestionWidgetExtension.entitlements; sourceTree = "<group>"; };
 		71D1B1C42E2A977300BA3373 /* SubwayCongestion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SubwayCongestion.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		467A01232E376F1200E9689F /* Exceptions for "CongestionWidget" folder in "CongestionWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 467A010A2E376F1000E9689F /* CongestionWidgetExtension */;
+		};
+		467A01292E37A1D300E9689F /* Exceptions for "SubwayCongestion" folder in "CongestionWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				MLResources/Final.mlmodel,
+				Prediction.swift,
+				PredictionContainer.swift,
+			);
+			target = 467A010A2E376F1000E9689F /* CongestionWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		467A012C2E37A1D700E9689F /* Exceptions for "SubwayCongestion" folder in "Compile Sources" phase from "CongestionWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 467A01072E376F1000E9689F /* Sources */;
+			membershipExceptions = (
+				MLResources/future_input.csv,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		467A01112E376F1000E9689F /* CongestionWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				467A01232E376F1200E9689F /* Exceptions for "CongestionWidget" folder in "CongestionWidgetExtension" target */,
+			);
+			path = CongestionWidget;
+			sourceTree = "<group>";
+		};
 		71D1B1C62E2A977300BA3373 /* SubwayCongestion */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				467A01292E37A1D300E9689F /* Exceptions for "SubwayCongestion" folder in "CongestionWidgetExtension" target */,
+				467A012C2E37A1D700E9689F /* Exceptions for "SubwayCongestion" folder in "Compile Sources" phase from "CongestionWidgetExtension" target */,
+			);
 			path = SubwayCongestion;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
+/* Begin PBXFrameworksBuildPhase section */
+		467A01082E376F1000E9689F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				467A01102E376F1000E9689F /* SwiftUI.framework in Frameworks */,
+				467A010E2E376F1000E9689F /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
 /* Begin PBXGroup section */
+		467A010C2E376F1000E9689F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				467A010D2E376F1000E9689F /* WidgetKit.framework */,
+				467A010F2E376F1000E9689F /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		71D1B1BB2E2A977300BA3373 = {
 			isa = PBXGroup;
 			children = (
+				467A01252E37A12B00E9689F /* CongestionWidgetExtension.entitlements */,
 				71D1B1C62E2A977300BA3373 /* SubwayCongestion */,
+				467A01112E376F1000E9689F /* CongestionWidget */,
+				467A010C2E376F1000E9689F /* Frameworks */,
 				71D1B1C52E2A977300BA3373 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -31,6 +130,7 @@
 			isa = PBXGroup;
 			children = (
 				71D1B1C42E2A977300BA3373 /* SubwayCongestion.app */,
+				467A010B2E376F1000E9689F /* CongestionWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -38,6 +138,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		467A010A2E376F1000E9689F /* CongestionWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 467A01242E376F1200E9689F /* Build configuration list for PBXNativeTarget "CongestionWidgetExtension" */;
+			buildPhases = (
+				467A01072E376F1000E9689F /* Sources */,
+				467A01082E376F1000E9689F /* Frameworks */,
+				467A01092E376F1000E9689F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				467A01112E376F1000E9689F /* CongestionWidget */,
+			);
+			name = CongestionWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = CongestionWidgetExtension;
+			productReference = 467A010B2E376F1000E9689F /* CongestionWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		71D1B1C32E2A977300BA3373 /* SubwayCongestion */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 71D1B1CF2E2A977400BA3373 /* Build configuration list for PBXNativeTarget "SubwayCongestion" */;
@@ -46,10 +168,12 @@
 				71D1B2C72E2AC84800BA3373 /* Run SwiftFormat */,
 				71D1B1C02E2A977300BA3373 /* Sources */,
 				71A77D032E324A910035B9ED /* Resources */,
+				467A01202E376F1200E9689F /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				467A011E2E376F1200E9689F /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				71D1B1C62E2A977300BA3373 /* SubwayCongestion */,
@@ -67,10 +191,13 @@
 		71D1B1BC2E2A977300BA3373 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1640;
+				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
+					467A010A2E376F1000E9689F = {
+						CreatedOnToolsVersion = 16.2;
+					};
 					71D1B1C32E2A977300BA3373 = {
 						CreatedOnToolsVersion = 16.4;
 					};
@@ -91,11 +218,19 @@
 			projectRoot = "";
 			targets = (
 				71D1B1C32E2A977300BA3373 /* SubwayCongestion */,
+				467A010A2E376F1000E9689F /* CongestionWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		467A01092E376F1000E9689F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		71A77D032E324A910035B9ED /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -147,6 +282,13 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		467A01072E376F1000E9689F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		71D1B1C02E2A977300BA3373 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -156,7 +298,74 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		467A011E2E376F1200E9689F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 467A010A2E376F1000E9689F /* CongestionWidgetExtension */;
+			targetProxy = 467A011D2E376F1200E9689F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		467A01212E376F1200E9689F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = CongestionWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Q8UK3SWSPM;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CongestionWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CongestionWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.patrue.tabular.SubwayCongestion.CongestionWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		467A01222E376F1200E9689F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = CongestionWidgetExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Q8UK3SWSPM;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CongestionWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CongestionWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.patrue.tabular.SubwayCongestion.CongestionWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		71D1B1CD2E2A977400BA3373 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -281,9 +490,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SubwayCongestion/SubwayCongestion.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = RAXCR9X83K;
+				DEVELOPMENT_TEAM = Q8UK3SWSPM;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -313,10 +523,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SubwayCongestion/SubwayCongestion.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = RAXCR9X83K;
+				DEVELOPMENT_TEAM = Q8UK3SWSPM;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -345,6 +556,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		467A01242E376F1200E9689F /* Build configuration list for PBXNativeTarget "CongestionWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				467A01212E376F1200E9689F /* Debug */,
+				467A01222E376F1200E9689F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		71D1B1BF2E2A977300BA3373 /* Build configuration list for PBXProject "SubwayCongestion" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -352,7 +572,7 @@
 				71D1B1CE2E2A977400BA3373 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		71D1B1CF2E2A977400BA3373 /* Build configuration list for PBXNativeTarget "SubwayCongestion" */ = {
 			isa = XCConfigurationList;
@@ -361,7 +581,7 @@
 				71D1B1D12E2A977400BA3373 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};
