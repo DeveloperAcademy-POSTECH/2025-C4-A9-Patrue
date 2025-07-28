@@ -52,9 +52,9 @@ struct Infographics: View {
     // 이미지와 설명 문구 리턴
     private func congestionDescription(for passengers: Int) -> (imageName: String, message: String) {
         switch passengers {
-        case 0 ..< 4000: return ("low", "운 좋으면 앉아갈 수 있는 정도")
-        case 4000 ..< 7000: return ("medium", "사람들과 부딪히지 않을 정도")
-        case 7000...: return ("high", "옆 사람과 어깨가 닿을 정도")
+        case 0 ..< 9000: return ("low", "운 좋으면 앉아갈 수 있는 정도")
+        case 9000 ..< 21000: return ("medium", "사람들과 부딪히지 않을 정도")
+        case 21000...: return ("high", "옆 사람과 어깨가 닿을 정도")
         default: return ("정보 없음", " ")
         }
     }
