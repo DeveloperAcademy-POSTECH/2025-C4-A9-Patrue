@@ -26,6 +26,8 @@ struct ContentView: View {
     @State private var selectedGraphDate: Date = mergeDateAndHour(date: .now, timeSource: .now)//graph 날짜 상태
     @State private var showGuideSheet: Bool = false
     @State private var selectedIndex: Int = 0
+    
+    @State private var timer: Timer? = nil //타이머 변수 추가
 
     var filteredPredictions: [Prediction] {
         let selectedMonth = calendar.component(.month, from: selectedDate)
@@ -91,6 +93,38 @@ struct ContentView: View {
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showGuideSheet) {
                 CongestionGuideSheet()
+            }
+            .onAppear {
+                if timer == nil {
+                    scheduleHourlyUpdate()
+                }
+            }
+            .onDisappear {
+                timer?.invalidate()
+                timer = nil
+            }
+        }
+    }
+    //앱 진입시 정각까지 남은 시간을 재는 함수.
+    private func scheduleHourlyUpdate() {
+        let now = Date()
+        let calendar = Calendar.current
+        
+        if let nextHour = calendar.date(bySettingHour: calendar.component(.hour, from: now) + 1,
+                                        minute: 0,
+                                        second: 0,
+                                        of: now) {
+            
+            let interval = nextHour.timeIntervalSince(now)
+            print("⏱ 정각까지 \(Int(interval))초 남음")
+            
+            timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { _ in
+                currentDate = Date()
+                print("🕐 정각 도달! currentDate 갱신됨")
+                
+                timer?.invalidate() // 혹시 모르니 안전하게
+                timer = nil          // 타이머 초기화
+                scheduleHourlyUpdate() // 다음 정각 예약
             }
         }
     }
