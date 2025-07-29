@@ -93,6 +93,11 @@
             value = "systemMedium"
             isEnabled = "YES">
          </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "CongestionWidget"
+            value = "CongestionWidget"
+            isEnabled = "YES">
+         </EnvironmentVariable>
       </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
