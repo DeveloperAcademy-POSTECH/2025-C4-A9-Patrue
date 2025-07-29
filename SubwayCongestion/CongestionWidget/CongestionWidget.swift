@@ -149,7 +149,7 @@ struct CongestionWidgetEntryView : View {
 }
 
 struct CongestionWidget: Widget {
-    let kind: String = " "
+    let kind: String = "com.patrue.tabular.widget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
