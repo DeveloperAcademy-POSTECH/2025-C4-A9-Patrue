@@ -5,8 +5,8 @@
 //  Created by 최희진 on 7/28/25.
 //
 
-import WidgetKit
 import SwiftUI
+import WidgetKit
 
 @main
 struct CongestionWidgetBundle: WidgetBundle {
