@@ -12,7 +12,5 @@ import SwiftUI
 struct CongestionWidgetBundle: WidgetBundle {
     var body: some Widget {
         CongestionWidget()
-        CongestionWidgetControl()
-        CongestionWidgetLiveActivity()
     }
 }

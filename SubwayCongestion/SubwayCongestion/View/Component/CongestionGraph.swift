@@ -83,6 +83,16 @@ struct CongestionGraph: View {
         .onChange(of: currentDate) {
             selectedDate = adjustedForRuleMark(roundedToHour(currentDate))
         }
+        .onAppear{
+            
+            if let highlighted = data.first(where: {
+                Calendar.current.isDate($0.asDate, equalTo: selectedDate, toGranularity: .hour)
+            }){
+                passengers = highlighted.passengers
+            }
+            
+            print(currentDate, passengers, descriptionForCongestion(passengers ?? 0))
+        }
     }
 }
 
